@@ -15,5 +15,10 @@
     "RPPG"
   ],
   "author": "swaroop_a.s <swaroopanand325@gmail.com> (https://github.com/swaroop325)",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": "https://github.com/swaroop325/careplix-web-algo",
+  "bugs": {
+    "url": "https://github.com/swaroop325/careplix-web-algo/issues"
+  },
+  "homepage": "https://github.com/swaroop325/careplix-web-algo#readme"
 }
