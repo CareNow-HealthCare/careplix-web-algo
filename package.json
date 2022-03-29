@@ -1,0 +1,19 @@
+{
+  "type": "module",
+  "name": "careplix-web-algo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "description": "NPM module which contains the processing the frontend code",
+  "keywords": [
+    "CarePlix",
+    "ios",
+    "android",
+    "PWA",
+    "RPPG"
+  ],
+  "author": "swaroop_a.s <swaroopanand325@gmail.com> (https://github.com/swaroop325)",
+  "license": "MIT"
+}
