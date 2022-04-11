@@ -5,6 +5,7 @@ let setRawTemp;
 let setTimeTemp;
 let setVideoHeightTemp;
 let setVideoWidthTemp;
+let setTextForIdTemp;
 let setFPSCountTemp;
 let vc;
 let streaming = false;
@@ -46,7 +47,8 @@ export async function fingerScan(
   setTime,
   setFPSCount,
   setVideoHeight,
-  setVideoWidth
+  setVideoWidth,
+  setTextForId
 ) {
   stats = new Stats();
   stats.showPanel(0);
@@ -91,6 +93,7 @@ export async function fingerScan(
   );
   setVideoHeightTemp = setVideoHeight;
   setVideoWidthTemp = setVideoWidth;
+  setTextForIdTemp = setTextForId;
   setRawTemp = setRaw;
   setTimeTemp = setTime;
   setFPSCountTemp = setFPSCount;
@@ -184,7 +187,7 @@ function hsv(frame) {
       } else {
         noHeartbeat = 0;
         document.getElementById("heartbeat").style.display = "block";
-        document.getElementById("sub_text").innerHTML = "Scan in progress...";
+        setTextForIdTemp("sub_text", "SCAN_IN_PROGRESS");
       }
       if (noHeartbeat > 200 && new Date() - start_time > 26000) {
         document.getElementById("heartbeat").style.display = "none";
@@ -223,13 +226,13 @@ function processVideo() {
         track.stop();
       });
     }
-    document.getElementById("time").innerHTML =
-      Math.round(perc) + "% Completed";
+    let percentageText = Math.round(perc);
+    setTextForIdTemp("time", "PERCENT_COMPLETED", percentageText);
   } else {
     let td = new Date() - start_time;
-    document.getElementById("time").innerHTML = "Calibration in progress...";
-    document.getElementById("sub_text").innerHTML =
-      "Scan starts in " + (20 - Math.round(td / 1000)) + "s";
+    setTextForIdTemp("time", "CALIBRATION_IN_PROGRESS");
+    let timeDiffText = 20 - Math.round(timeDiff / 1000) + "s";
+    setTextForIdTemp("sub_text", "SCAN_STARTS_TEXT", false, timeDiffText);
   }
   canvasOutput = document.getElementById("canvasOutput");
   canvasOutputCtx = canvasOutput && canvasOutput.getContext("2d");
@@ -238,13 +241,12 @@ function processVideo() {
   }
   if (new Date() - start_time <= 60000) {
     if (scanFailed == true) {
-      document.getElementById("time").innerHTML = "No Finger Detected";
+      setTextForIdTemp("time", "NO_FINGER_DETECTED");
       camera_stream.getTracks().forEach(function (track) {
         track.stop();
       });
       canvasOutput = null;
-      document.getElementById("sub_text").innerHTML =
-        "Please restart the scan. Make sure you place your finger properly on the rear primary camera until the screen turns bright red in color.";
+      setTextForIdTemp("sub_text", "RESTART_SCAN");
       setFPSCountTemp(0);
       setTimeTemp(ppg_time);
       setRawTemp(raw_intensity);
@@ -256,16 +258,15 @@ function processVideo() {
           track.stop();
         });
         canvasOutput = null;
-        document.getElementById("time").innerHTML = "Poor Signal Detected";
-        document.getElementById("sub_text").innerHTML =
-          "Due to poor signal quality we are unable to process. Please cancel and restart the scan.";
+        setTextForIdTemp("time", "POOR_SIGNAL");
+        setTextForIdTemp("sub_text", UNABLE_TO_PROCESS);
         setFPSCountTemp(0);
         setTimeTemp(ppg_time);
         setRawTemp(raw_intensity);
       }
     }
   } else {
-    document.getElementById("time").innerHTML = "Scan Completed";
+    setTextForIdTemp("time", "SCAN_COMPLETED");
     hr_array.sort();
     var final_hr = 0;
     if (hr_array.length % 2 == 0) {
@@ -291,9 +292,8 @@ function processVideo() {
     let raw_size = raw_intensity.length;
     if (scanFailed) {
       setFPSCountTemp(0);
-      document.getElementById("time").innerHTML = "Scan Failed";
-      document.getElementById("time").innerHTML =
-        "No heartbeat detected in the middle of the scan.";
+      setTextForIdTemp("time", "SCAN_FAILED");
+      setTextForIdTemp("sub_text", "NO_HEARTBEAT_DETECTED");
     } else {
       setFPSCountTemp(Math.round(raw_size / 40));
     }

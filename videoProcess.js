@@ -37,13 +37,15 @@ let grayMat = null;
 let setRawTemp;
 let setTimeTemp;
 let setFPSCountTemp;
+let setTextForIdTemp;
 
 export async function faceScan(
   setRaw,
   setTime,
   setFPSCount,
   setVideoHeight,
-  setVideoWidth
+  setVideoWidth,
+  setTextForId
 ) {
   stats = new Stats();
   stats.showPanel(0);
@@ -72,6 +74,7 @@ export async function faceScan(
   );
   setVideoHeightTemp = setVideoHeight;
   setVideoWidthTemp = setVideoWidth;
+  setTextForIdTemp = setTextForId;
   setFPSCountTemp = setFPSCount;
   setTimeTemp = setTime;
   setRawTemp = setRaw;
@@ -163,11 +166,11 @@ function processVideo() {
     result = hsv(roi);
     let comp = (new Date() - start_time - 20000) / 40000;
     let perc = comp * 100;
-    document.getElementById("time").innerHTML =
-      Math.round(perc) + "% Completed";
+    let percentageText = Math.round(perc);
+    setTextForIdTemp("time", "PERCENT_COMPLETED", percentageText);
   } else {
     result = hsv(roi);
-    document.getElementById("time").innerHTML = "Calibration In Process..";
+    setTextForIdTemp("time", "CALIBRATION_IN_PROGRESS");
   }
   canvasOutput = document.getElementById("canvasOutput");
   canvasOutputCtx = canvasOutput && canvasOutput.getContext("2d");
@@ -192,9 +195,8 @@ function processVideo() {
         track.stop();
       });
       canvasOutput = null;
-      document.getElementById("time").innerHTML = "Poor Signal Detected";
-      document.getElementById("sub_text").innerHTML =
-        "Due to poor signal quality we are unable to process. Please cancel and restart the scan.";
+      setTextForIdTemp("time", "POOR_SIGNAL");
+      setTextForIdTemp("sub_text", "UNABLE_TO_PROCESS");
       setFPSCountTemp(0);
       setTimeTemp(ppg_time);
       setRawTemp(raw_intensity);
@@ -204,7 +206,7 @@ function processVideo() {
       track.stop();
     });
     canvasOutput = null;
-    document.getElementById("time").innerHTML = "Scan Completed";
+    setTextForIdTemp("time", "SCAN_COMPLETED");
     hr_array.sort();
     var final_hr = 0;
     if (hr_array.length % 2 == 0) {

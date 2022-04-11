@@ -16,6 +16,7 @@ let tmp, fftData;
 let setRawTemp;
 let setTimeTemp;
 let setFPSCountTemp;
+let setTextForIdTemp;
 
 let raw = [];
 let ppg_time2 = [];
@@ -213,10 +214,11 @@ function calcRGB(image) {
   return rgb;
 }
 
-export async function face(setRaw, setTime, setFPSCount) {
+export async function face(setRaw, setTime, setFPSCount, setVideoHeight, setVideoWidth, setTextForId) {
   fmesh = await facemesh.load({ maxFaces: 1 });
-  document.getElementById("time").innerHTML = "Opening Camera..";
-  document.getElementById("sub_text").innerHTML = "...";
+  setTextForIdTemp = setTextForId;
+  setTextForIdTemp("time", "OPEN_CAMERA")
+  setTextForIdTemp("sub_text", "ELLIPSES")
   setRawTemp = setRaw;
   setTimeTemp = setTime;
   setFPSCountTemp = setFPSCount;

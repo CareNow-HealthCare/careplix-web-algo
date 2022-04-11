@@ -33,6 +33,7 @@ var fft;
 let setRawTemp;
 let setTimeTemp;
 let setFPSCountTemp;
+let setTextForIdTemp;
 var average = (array) => array.reduce((a, b) => a + b) / array.length;
 
 async function setupCamera() {
@@ -64,13 +65,13 @@ async function renderPrediction() {
   timeDiff = now - start_time;
   if (timeDiff >= 20000) {
     let percentage = (timeDiff - 20000) / 40000;
-    document.getElementById("time").innerHTML =
-      "" + Math.round(percentage * 100) + "% Completed";
-    document.getElementById("sub_text").innerHTML = "Scan in progress...";
+    let percentageText = "" + Math.round(percentage * 100);
+    setTextForIdTemp("time", "PERCENT_COMPLETED", percentageText);
+    setTextForIdTemp("sub_text", "SCAN_IN_PROGRESS");
   } else if (timeDiff < 20000) {
-    document.getElementById("time").innerHTML = "Calibration in progress...";
-    document.getElementById("sub_text").innerHTML =
-      "Scan starts in " + (20 - Math.round(timeDiff / 1000)) + "s";
+    setTextForIdTemp("time", "CALIBRATION_IN_PROGRESS");
+    let timeDiffText = 20 - Math.round(timeDiff / 1000) + "s";
+    setTextForIdTemp("sub_text", "SCAN_STARTS_TEXT", false, timeDiffText);
   }
   if (facepred.length > 0 && timeDiff <= 60000) {
     curFaces = facepred;
@@ -80,7 +81,7 @@ async function renderPrediction() {
     stream.getTracks().forEach(function (track) {
       track.stop();
     });
-    document.getElementById("time").innerHTML = "Scan Completed";
+    setTextForIdTemp("time", "SCAN_COMPLETED");
     hr_array.sort();
     var final_hr = 0;
     if (hr_array.length % 2 == 0) {
@@ -91,7 +92,7 @@ async function renderPrediction() {
           hr_array[(hr_array.length + 1) / 2]) /
         2;
     }
-    document.getElementById("final_hr").innerHTML = final_hr + " bpm";
+    setTextForIdTemp("final_hr", "BPM_TEXT", final_hr, false);
     let raw_size = raw_intensity.length;
     setFPSCountTemp(Math.round(raw_size / 40));
     setTimeTemp(ppg_time);
@@ -204,10 +205,18 @@ function calcRGB(image) {
   return rgb;
 }
 
-export async function faceiOS(setRaw, setTime, setFPSCount) {
+export async function faceiOS(
+  setRaw,
+  setTime,
+  setFPSCount,
+  setVideoHeight,
+  setVideoWidth,
+  setTextForId
+) {
   setFPSCountTemp = setFPSCount;
   setTimeTemp = setTime;
   setRawTemp = setRaw;
+  setTextForIdTemp = setTextForId;
   fmesh = await facemesh.load({ maxFaces: 1 });
   await setupCamera();
   videoWidth = video.videoWidth;
