@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "careplix-web-algo",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -14,11 +14,17 @@
     "PWA",
     "RPPG"
   ],
-  "author": "swaroop_a.s <swaroopanand325@gmail.com> (https://github.com/swaroop325)",
+  "author": "Silverx47 <arnab.ganguly@carenow.healthcare> (https://github.com/Silverx47)",
   "license": "MIT",
-  "repository": "https://github.com/swaroop325/careplix-web-algo",
+  "repository": "https://github.com/CareNow-HealthCare/careplix-web-algo",
   "bugs": {
-    "url": "https://github.com/swaroop325/careplix-web-algo/issues"
+    "url": "https://github.com/CareNow-HealthCare/careplix-web-algo/issues"
   },
-  "homepage": "https://github.com/swaroop325/careplix-web-algo#readme"
+  "homepage": "https://github.com/CareNow-HealthCare/careplix-web-algo/careplix-web-algo#readme",
+  "dependencies": {
+    "@mediapipe/face_mesh": "^0.4.1633559619",
+    "@tensorflow-models/face-landmarks-detection": "^1.0.1",
+    "@tensorflow/tfjs-converter": "^3.18.0",
+    "@tensorflow/tfjs-core": "^3.18.0"
+  }
 }
