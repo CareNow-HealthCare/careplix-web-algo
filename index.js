@@ -1,5 +1,2 @@
-import { faceiOS } from "./videoFaceiOS";
-import { faceScan } from "./videoProcess";
-import { fingerScan } from "./videoProcess2";
-
-export { faceiOS, faceScan, fingerScan };
+export { default as faceScan } from './faceScan.js';
+export { default as fingerScan } from './fingerScan.js';

@@ -1,1 +1,0 @@
-declare module "careplix-web-algo/videoFaceiOS";
