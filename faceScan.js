@@ -5,11 +5,10 @@ let minimumScanTime = 60000;
 let totalScanTime = 120000;
 
 let isInitializing = true;
-let isScanning = true;
+let isScanning = false;
 let canStop = false;
 let start_time;
 
-let stream;
 let video;
 let canvas;
 let ctx;
@@ -29,19 +28,22 @@ let raw_intensity = [];
 let ppg_time = [];
 let fps_array = [];
 
-const setupCamera = async () => {
-  stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: { facingMode: "user", aspectRatio: 16 / 9 },
-  });
-  video.srcObject = stream;
-  return new Promise((resolve) => {
+const setupCamera = () => new Promise(async (resolve, reject) => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: "user", aspectRatio: 16 / 9 },
+    });
+    video.srcObject = stream;
     video.onloadedmetadata = () => { resolve() };
-  });
-}
+  } catch (error) {
+    reject(new Error("Error in Accessing the Camera."));
+  }
+});
+
 
 const stopScan = (noCallback = false) => {
-  stream.getTracks().forEach(function (track) { track.stop(); });
+  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   isScanning = false;
   if (!noCallback && canStop) onScanFinishCallback({
     raw_intensity,
@@ -185,10 +187,24 @@ const startScan = async (
   modelPath = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
 ) => {
   try {
+    isInitializing = true;
+    isScanning = false;
+    canStop = false;
+    isFaceInView = false;
+    noDetectionCount = 0;
+    faceCircleRegion = undefined;
+    minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+    calibrationFPSArray = [];
+    raw_intensity = [];
+    ppg_time = [];
+    fps_array = [];
+
     if (minimumScanTime_inMS < 60000)
       throw new Error('Minimum 60 seconds of Scan is Mandatory.');
     if (minimumScanTime_inMS > totalScanTime_inMS)
       throw new Error('Total Scan-Time cannot be smaller than Minimum Scan-Time.');
+    minimumScanTime = minimumScanTime_inMS;
+    totalScanTime = totalScanTime_inMS;
 
     fmesh = await faceLandmarksDetection.createDetector(faceLandmarksDetection.SupportedModels.MediaPipeFaceMesh, {
       runtime: 'mediapipe',
@@ -211,21 +227,10 @@ const startScan = async (
     }
 
     // start prediction loop
-    minimumScanTime = minimumScanTime_inMS;
-    totalScanTime = totalScanTime_inMS;
-    isInitializing = false;
-    isScanning = true;
-    canStop = false;
-    isFaceInView = false;
-    noDetectionCount = 0;
-    faceCircleRegion = undefined;
-    minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
-    calibrationFPSArray = [];
-    raw_intensity = [];
-    ppg_time = [];
-    fps_array = [];
     start_time = performance.now();
     requestAnimationFrame(scan);
+    isInitializing = false;
+    isScanning = true;
   } catch (err) {
     onErrorCallback(err ?? new Error('Facescan Initialization Error.'));
   }

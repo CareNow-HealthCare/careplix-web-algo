@@ -3,11 +3,10 @@ let minimumScanTime = 60000;
 let totalScanTime = 120000;
 
 let isInitializing = true;
-let isScanning = true;
+let isScanning = false;
 let canStop = false;
 let start_time;
 
-let stream;
 let video;
 
 let canvas;
@@ -23,28 +22,30 @@ let raw_intensity = [];
 let ppg_time = [];
 let fps_array = [];
 
-const setupCamera = async () => {
-  stream = await navigator.mediaDevices.getUserMedia({
-    audio: false,
-    video: { facingMode: "environment", aspectRatio: 16 / 9 },
-  });
-  const track = stream.getVideoTracks()[0];
-  await track.applyConstraints({ advanced: [{ torch: true }] });
-  video.srcObject = stream;
-  return new Promise((resolve) => {
+const setupCamera = () => new Promise(async (resolve, reject) => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: "environment", aspectRatio: 16 / 9 },
+    });
+    const track = stream.getVideoTracks()[0];
+    await track.applyConstraints({ advanced: [{ torch: true }] });
+    video.srcObject = stream;
     video.onloadedmetadata = () => { resolve() };
-  });
-}
+  } catch (error) {
+    reject(new Error("Error in Accessing the Camera."));
+  }
+});
+
 
 const stopScan = (noCallback = false) => {
-  stream.getTracks().forEach(function (track) { track.stop(); });
+  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   isScanning = false;
   if (!noCallback && canStop) onScanFinishCallback({
     raw_intensity,
     ppg_time,
     average_fps: Math.round(fps_array.reduce((sum, value) => sum + value, 0) / fps_array.length),
   });
-
 }
 
 const calcConfidence = (rgb = { r: 0, g: 0, b: 0 }) => {
@@ -129,10 +130,21 @@ const scan = async (loop_start_time) => {
 
 const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
   try {
+    isInitializing = true;
+    isScanning = false;
+    canStop = false;
+    isFingerInView = false;
+    noDetectionCount = 0;
+    raw_intensity = [];
+    ppg_time = [];
+    fps_array = [];
+
     if (minimumScanTime_inMS < 60000)
       throw new Error('Minimum 60 seconds of Scan is Mandatory.');
     if (minimumScanTime_inMS > totalScanTime_inMS)
       throw new Error('Total Scan-Time cannot be smaller than Minimum Scan-Time.');
+    minimumScanTime = minimumScanTime_inMS;
+    totalScanTime = totalScanTime_inMS;
 
     // Set up front-facing camera
     video = document.getElementById("videoInput");
@@ -148,18 +160,10 @@ const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 1200
     }
 
     // start prediction loop
-    minimumScanTime = minimumScanTime_inMS;
-    totalScanTime = totalScanTime_inMS;
-    isInitializing = false;
-    isScanning = true;
-    canStop = false;
-    isFingerInView = false;
-    noDetectionCount = 0;
-    raw_intensity = [];
-    ppg_time = [];
-    fps_array = [];
     start_time = performance.now();
     requestAnimationFrame(scan);
+    isInitializing = false;
+    isScanning = true;
   } catch (err) {
     onErrorCallback(err ?? new Error('Fingerscan Initialization Error.'));
   }
