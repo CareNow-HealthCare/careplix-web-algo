@@ -28,8 +28,6 @@ const setupCamera = () => new Promise(async (resolve, reject) => {
       audio: false,
       video: { facingMode: "environment", aspectRatio: 16 / 9 },
     });
-    const track = stream.getVideoTracks()[0];
-    await track.applyConstraints({ advanced: [{ torch: true }] });
     video.srcObject = stream;
     video.onloadedmetadata = () => { resolve() };
   } catch (error) {
@@ -39,8 +37,8 @@ const setupCamera = () => new Promise(async (resolve, reject) => {
 
 
 const stopScan = (noCallback = false) => {
-  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   isScanning = false;
+  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   if (!noCallback && canStop) onScanFinishCallback({
     raw_intensity,
     ppg_time,
@@ -88,6 +86,7 @@ const scan = async (loop_start_time) => {
   const timeElapsed = performance.now() - start_time;
   try {
     if (isScanning) {
+      video?.srcObject?.getVideoTracks()?.[0]?.applyConstraints({ advanced: [{ torch: true }] }).catch(console.error);
       if (timeElapsed <= totalCalibrationTime) {
         const avgRGB = drawCanvas();
         const confidence = calcConfidence(avgRGB);

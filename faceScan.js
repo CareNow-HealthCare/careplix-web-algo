@@ -43,8 +43,8 @@ const setupCamera = () => new Promise(async (resolve, reject) => {
 
 
 const stopScan = (noCallback = false) => {
-  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   isScanning = false;
+  video?.srcObject?.getTracks().forEach(function (track) { track.stop(); });
   if (!noCallback && canStop) onScanFinishCallback({
     raw_intensity,
     ppg_time,
