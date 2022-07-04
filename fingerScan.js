@@ -31,7 +31,7 @@ const setupCamera = () => new Promise(async (resolve, reject) => {
     video.srcObject = stream;
     video.onloadedmetadata = () => { resolve() };
   } catch (error) {
-    reject(new Error("Error in Accessing the Camera."));
+    reject(new Error("We are not able to access the Camera . Please try again.."));
   }
 });
 
