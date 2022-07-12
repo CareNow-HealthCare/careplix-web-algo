@@ -155,7 +155,21 @@ This function call stops the Scan.
 | `canStop()` | Returns `true` if Minimum Scan Time is elapsed |
 | `isFingerInView()` | Returns `false` if the finger is not properly detected |
 
+## Capture image during scan
+```js
+function captureImage() {
+    let canvas = document.getElementById("canvasOutput");
+    let dataURL = canvas.toDataURL('image/png');
 
+    process(dataURL);
+    /*
+      with the dataURL i.e. "data:image/png;base64,*****" you can do the following things...
+      1. Save as PNG image file, then upload to backend.
+      2. Send the dataURL to the backend, then save it as file in server.
+      3. Send & Save the dataURL as-is.
+    */
+}
+```
 
 ## License
 MIT
