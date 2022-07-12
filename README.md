@@ -1,7 +1,8 @@
 # careplix-web-algo
+Careplix Web SDK for Node & Browser Environment to generate Raw Scan Data.
 
-## Installation
-### Node.js Environment
+# Installation
+## Node.js Environment
 ```sh
 # with npm
 npm install careplix-web-algo
@@ -17,7 +18,7 @@ import { faceScan } from "careplix-web-algo";
 import { fingerScan } from "careplix-web-algo";
 ```
 
-### Standalone
+## Standalone
 You can download the standalone js files from [GitHub](https://github.com/CareNow-HealthCare/careplix-web-algo/tree/master/dist)\
 Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/careplix-web-algo) or [unpkg](https://www.unpkg.com/browse/careplix-web-algo/)
 ```html
@@ -31,6 +32,15 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```
 
 
+
+# Usage
+Include the following html elements in the Scan Page.
+```html
+<div style="height: 100vh; position: relative;">
+  <video id="videoInput" width="0" height="0" autoplay muted hidden playsinline></video>
+  <canvas id="canvasOutput" style="width:100%; height:100%; scale: -1 1;"></canvas>
+</div>
+```
 
 ## Face Scan
 ```js
