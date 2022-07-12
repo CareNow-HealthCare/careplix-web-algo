@@ -4,7 +4,7 @@
   "version": "2.0.4",
   "main": "index.js",
   "scripts": {
-    "build": "browserify faceScan.js -o build/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan & browserify fingerScan.js -o build/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"
+    "build": "browserify faceScan.js -o dist/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan && browserify fingerScan.js -o dist/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"
   },
   "description": "NPM module which contains the processing the frontend code",
   "keywords": [
