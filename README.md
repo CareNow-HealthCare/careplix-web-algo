@@ -3,10 +3,10 @@
 ## Installation
 ### Node.js Environment
 ```sh
+# with npm
 npm install careplix-web-algo
-```
-##### OR
-```sh
+
+# with yarn
 yarn add careplix-web-algo
 ```
 ```js
