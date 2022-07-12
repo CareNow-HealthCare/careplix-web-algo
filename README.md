@@ -72,6 +72,12 @@ During Scan you recieve data from every processed frame through this callback.
 
 ### `onError()`
 If any error occurs during Scan, this callback will be called with the `Error` object.
+| Error Message |	Cause/Reason |
+| --- | --- |
+| Facescan Initialization Error. |	model initialization failed. |
+| Facescan Error. | any general error occured during the scan process. |
+| We are not able to access the Camera. Please try again. | camera is inaccessible. |
+| Unable to measure your vitals. Try to look at the camera the next time. |	face is not properly visible, or not enough light to detect a face. |
 
 ### `onScanFinish()`
 When the scan is finished successfully, this callback will be called with raw data, which will be needed for the backend API call.
@@ -135,6 +141,12 @@ During Scan you recieve data from every processed frame through this callback.
 
 ### `onError()`
 If any error occurs during Scan, this callback will be called with the `Error` object.
+| Error Message | Cause/Reason |
+| --- | --- |
+| Fingerscan Initialization Error. | error at initialization. |
+| Fingerscan Error. | any general error occured during the scan process. |
+| We are not able to access the Camera. Please try again. | camera is inaccessible. |
+| Unable to measure your vitals. Try to keep your finger steady the next time. | finger is not properly placed or, not visible. |
 
 ### `onScanFinish()`
 When the scan is finished successfully, this callback will be called with raw data, which will be needed for the backend API call.
