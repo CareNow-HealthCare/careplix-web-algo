@@ -31,7 +31,7 @@ const setupCamera = () => new Promise(async (resolve, reject) => {
     video.srcObject = stream;
     video.onloadedmetadata = () => { resolve() };
   } catch (error) {
-    reject(new Error("We are not able to access the Camera . Please try again.."));
+    reject(new Error("We are not able to access the Camera . Please try again."));
   }
 });
 
@@ -101,7 +101,7 @@ const scan = async (loop_start_time) => {
         if (noDetectionCount > 200) {
           onErrorCallback(new Error('Unable to measure your vitals.\nTry to keep your finger steady the next time.'));
         } else {
-          if (timeElapsed >= (totalCalibrationTime + minimumScanTime)) canStop = true;
+          if (timeElapsed > (totalCalibrationTime + minimumScanTime)) canStop = true;
           else canStop = false;
           const avgRGB = drawCanvas();
           const confidence = calcConfidence(avgRGB);
@@ -118,6 +118,7 @@ const scan = async (loop_start_time) => {
           requestAnimationFrame(scan);
         }
       } else {
+        canStop = true;
         stopScan();
       }
     }
@@ -145,10 +146,12 @@ const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 1200
     minimumScanTime = minimumScanTime_inMS;
     totalScanTime = totalScanTime_inMS;
 
-    // Set up front-facing camera
+    // Set up back camera
     video = document.getElementById("videoInput");
-    await setupCamera();
-    video.play();
+    if (video) {
+      await setupCamera();
+      video.play();
+    } else throw new Error('Cannot get the video element.');
 
     // Create canvas and drawing context
     canvas = document.getElementById("canvasOutput");
@@ -156,7 +159,7 @@ const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 1200
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx = canvas.getContext("2d");
-    }
+    } else throw new Error('Cannot get the canvas element.');
 
     // start prediction loop
     start_time = performance.now();
@@ -168,7 +171,7 @@ const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 1200
   }
 }
 
-export default {
+const fingerScan = {
   startScan,
   stopScan,
   onFrame: (callback = ({ type = '', timeElapsed = 0, confidence = 0, fps = 0 }) => { }) => {
@@ -185,3 +188,5 @@ export default {
   canStop: () => canStop,
   isFingerInView: () => isFingerInView,
 };
+
+export default fingerScan;
