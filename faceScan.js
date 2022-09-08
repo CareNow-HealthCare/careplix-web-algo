@@ -3,6 +3,7 @@ import { FaceMesh } from "@mediapipe/face_mesh";
 const totalCalibrationTime = 20000;
 let minimumScanTime = 60000;
 let totalScanTime = 120000;
+let lightModeInterval_inS = 3;
 
 let isInitializing = true;
 let isScanning = false;
@@ -158,12 +159,13 @@ const scan = async (loop_start_time) => {
         requestAnimationFrame(scan);
       } else if (timeElapsed <= (totalCalibrationTime + totalScanTime)) {
         if (noDetectionCount > 100) {
+          stopScan(true);
           onErrorCallback(new Error('Unable to measure your vitals.\nTry to look at the camera the next time.'));
         } else {
           if (timeElapsed > (totalCalibrationTime + minimumScanTime)) canStop = true;
           else canStop = false;
           let region = undefined;
-          if ((calibrationFPSArray.reduce((sum, value) => sum + value, 0) / calibrationFPSArray.length) < 15) region = undefined;
+          if (((Math.floor(timeElapsed / 1000) % lightModeInterval_inS) !== 0) && ((calibrationFPSArray.reduce((sum, value) => sum + value, 0) / calibrationFPSArray.length) < 15)) region = undefined;
           else region = await getRegion();
           if (!isFaceInView) noDetectionCount++;
           const avgRGB = drawCanvas(faceCircleRegion, { region, rect: { x: minX, y: minY, w: maxX - minX, h: maxY - minY } });
@@ -185,6 +187,7 @@ const scan = async (loop_start_time) => {
     }
   }
   catch (err) {
+    stopScan(true);
     onErrorCallback(err ?? new Error('Facescan Error.'));
   }
 }
@@ -193,6 +196,7 @@ const startScan = async (
   minimumScanTime_inMS = 60000,
   totalScanTime_inMS = 120000,
   modelPath = 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh',
+  lightModeRedetectionInterval_inMS = 3000
 ) => {
   try {
     isInitializing = true;
@@ -211,8 +215,11 @@ const startScan = async (
       throw new Error('Minimum 60 seconds of Scan is Mandatory.');
     if (minimumScanTime_inMS > totalScanTime_inMS)
       throw new Error('Total Scan-Time cannot be smaller than Minimum Scan-Time.');
+    if (lightModeRedetectionInterval_inMS < 3000 || lightModeRedetectionInterval_inMS > 5000)
+      throw new Error("Light mode Re-Detection Interval should be in 3000-5000ms range.");
     minimumScanTime = minimumScanTime_inMS;
     totalScanTime = totalScanTime_inMS;
+    lightModeInterval_inS = Math.round(lightModeRedetectionInterval_inMS / 1000);
 
     fmesh = new FaceMesh({ locateFile: file => `${modelPath}/${file}` });
     fmesh.setOptions({
@@ -244,6 +251,7 @@ const startScan = async (
     isInitializing = false;
     isScanning = true;
   } catch (err) {
+    stopScan(true);
     onErrorCallback(err ?? new Error('Facescan Initialization Error.'));
   }
 }

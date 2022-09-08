@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo/dist/faceScan.bundle.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.7/dist/faceScan.bundle.js"></script>
+  
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.7/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -67,7 +67,7 @@ During Scan you recieve data from every processed frame through this callback.
 | --- | --- | --- |
 | type | string | Type of the frame. Which can be either `"calibration"` or `"scan"` |
 | timeElapsed | number | Time Elapsed in ms |
-| isLightMode | boolean | `true` if light mode is being used during the scan, due to poor device performance |
+| isLightMode | boolean | `true` if light mode is being used during the scan, due to poor device performance ([Read More](#light-mode)) |
 | fps | number | Current FPS of the frame |
 
 ### `onError()`
@@ -92,8 +92,9 @@ This function call starts the Scan.
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | minimumScanTime_inMS | number | 60000 | Minimum Duration of the Scan in ms |
-| totalScanTime_inMS | number | 12000 | Total Duration of the Scan in ms |
+| totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |
+| lightModeRedetectionInterval_inMS | number | 3000 | Face Re-Detection interval when in Light Mode ([Read More](#light-mode)) |
 
 ### `stopScan()`
 This function call stops the Scan.
@@ -109,6 +110,11 @@ This function call stops the Scan.
 | `canStop()` | Returns `true` if Minimum Scan Time is elapsed |
 | `isFaceInView()` | Returns `false` if the face is not properly visible |
 
+### Light Mode
+During Calibration time we try to detect if the device has enough processing resource available to run the Face Detection continuously.  
+If for any reason, the device does not have enough resources available, we then start the Scan in Light Mode.  
+In Light Mode, we detect the face periodically and continue with the Scanning Process.  
+The Face Re-Detection interval is configurable during development via the `startScan()` method.  
 
 
 ## Finger Scan
@@ -161,7 +167,7 @@ This function call starts the Scan.
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | minimumScanTime_inMS | number | 60000 | Minimum Duration of the Scan in ms |
-| totalScanTime_inMS | number | 12000 | Total Duration of the Scan in ms |
+| totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 
 ### `stopScan()`
 This function call stops the Scan.
