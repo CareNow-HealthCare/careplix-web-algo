@@ -99,6 +99,7 @@ const scan = async (loop_start_time) => {
         requestAnimationFrame(scan);
       } else if (timeElapsed <= (totalCalibrationTime + totalScanTime)) {
         if (noDetectionCount > 200) {
+          stopScan(true);
           onErrorCallback(new Error('Unable to measure your vitals.\nTry to keep your finger steady the next time.'));
         } else {
           if (timeElapsed > (totalCalibrationTime + minimumScanTime)) canStop = true;
@@ -124,6 +125,7 @@ const scan = async (loop_start_time) => {
     }
   }
   catch (err) {
+    stopScan(true);
     onErrorCallback(err ?? new Error('Fingerscan Error.'));
   }
 }
@@ -167,6 +169,7 @@ const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 1200
     isInitializing = false;
     isScanning = true;
   } catch (err) {
+    stopScan(true);
     onErrorCallback(err ?? new Error('Fingerscan Initialization Error.'));
   }
 }
