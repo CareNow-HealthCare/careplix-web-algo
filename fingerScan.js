@@ -130,48 +130,52 @@ const scan = async (loop_start_time) => {
   }
 }
 
-const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
-  try {
-    isInitializing = true;
-    isScanning = false;
-    canStop = false;
-    isFingerInView = false;
-    noDetectionCount = 0;
-    raw_intensity = [];
-    ppg_time = [];
-    fps_array = [];
+const startScan = (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
+  isInitializing = true;
+  isScanning = false;
+  canStop = false;
+  isFingerInView = false;
+  noDetectionCount = 0;
+  raw_intensity = [];
+  ppg_time = [];
+  fps_array = [];
 
-    if (minimumScanTime_inMS < 60000)
-      throw new Error('Minimum 60 seconds of Scan is Mandatory.');
-    if (minimumScanTime_inMS > totalScanTime_inMS)
-      throw new Error('Total Scan-Time cannot be smaller than Minimum Scan-Time.');
-    minimumScanTime = minimumScanTime_inMS;
-    totalScanTime = totalScanTime_inMS;
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (minimumScanTime_inMS < 60000)
+        throw new Error('Minimum 60 seconds of Scan is Mandatory.');
+      if (minimumScanTime_inMS > totalScanTime_inMS)
+        throw new Error('Total Scan-Time cannot be smaller than Minimum Scan-Time.');
+      minimumScanTime = minimumScanTime_inMS;
+      totalScanTime = totalScanTime_inMS;
 
-    // Set up back camera
-    video = document.getElementById("videoInput");
-    if (video) {
-      await setupCamera();
-      video.play();
-    } else throw new Error('Cannot get the video element.');
+      // Set up back camera
+      video = document.getElementById("videoInput");
+      if (video) {
+        await setupCamera();
+        video.play();
+      } else throw new Error('Cannot get the video element.');
 
-    // Create canvas and drawing context
-    canvas = document.getElementById("canvasOutput");
-    if (canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      ctx = canvas.getContext("2d");
-    } else throw new Error('Cannot get the canvas element.');
+      // Create canvas and drawing context
+      canvas = document.getElementById("canvasOutput");
+      if (canvas) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx = canvas.getContext("2d");
+      } else throw new Error('Cannot get the canvas element.');
 
-    // start prediction loop
-    start_time = performance.now();
-    requestAnimationFrame(scan);
-    isInitializing = false;
-    isScanning = true;
-  } catch (err) {
-    stopScan(true);
-    onErrorCallback(err ?? new Error('Fingerscan Initialization Error.'));
-  }
+      // start prediction loop
+      start_time = performance.now();
+      requestAnimationFrame(scan);
+      isInitializing = false;
+      isScanning = true;
+      resolve();
+    } catch (err) {
+      stopScan(true);
+      onErrorCallback(err ?? new Error('Fingerscan Initialization Error.'));
+      reject('Fingerscan Initialization Error.');
+    }
+  })
 }
 
 const fingerScan = {
