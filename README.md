@@ -95,7 +95,7 @@ This function call starts the Scan.
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |
 | lightModeRedetectionInterval_inMS | number | 3000 | Face Re-Detection interval when in Light Mode ([Read More](#light-mode)) |
-| drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "rgba(107,184,248,0.8)",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box"<br>**color** can be any valid Color string |
+| drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "#6bb8f8cc",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box"<br>**color** can be any valid Color string |
 
 ### `stopScan()`
 This function call stops the Scan.
