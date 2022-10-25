@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.7/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.8/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.7/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.8/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -37,8 +37,8 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 Include the following html elements in the Scan Page.
 ```html
 <div style="height: 100vh; position: relative;">
-  <video id="videoInput" width="0" height="0" autoplay muted hidden playsinline></video>
-  <canvas id="canvasOutput" style="width:100%; height:100%; scale: -1 1;"></canvas>
+    <video id="videoInput" width="0" height="0" autoplay muted hidden playsinline></video>
+    <canvas id="canvasOutput" style="width:100%; height:100%; transform: scaleX(-1);"></canvas>
 </div>
 ```
 
@@ -95,6 +95,7 @@ This function call starts the Scan.
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |
 | lightModeRedetectionInterval_inMS | number | 3000 | Face Re-Detection interval when in Light Mode ([Read More](#light-mode)) |
+| drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "rgba(107,184,248,0.8)",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box"<br>**color** can be any valid Color string |
 
 ### `stopScan()`
 This function call stops the Scan.
