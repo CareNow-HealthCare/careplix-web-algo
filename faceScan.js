@@ -71,7 +71,7 @@ const getRegion = () => new Promise(async (resolve, reject) => {
     fmesh.send({ image: video });
     fmesh.onResults(results => {
       if (results?.multiFaceLandmarks?.[0]?.length > 0) {
-        if (drawType === 'box') {
+        if (drawType !== 'faceCircle') {
           const box = { minX: Infinity, minY: Infinity, maxX: 0, maxY: 0 };
           results.multiFaceLandmarks[0].forEach(point => {
             const x = (point.x * canvas.width);
@@ -81,17 +81,31 @@ const getRegion = () => new Promise(async (resolve, reject) => {
             box.maxX = Math.max(box.maxX, x);
             box.maxY = Math.max(box.maxY, y);
           });
-          const boxRegion = new Path2D();
-          boxRegion.rect(box.minX, box.minY, box.maxX - box.minX, box.maxY - box.minY);
-          drawingRegion = boxRegion;
+          drawingRegion = new Path2D();
+          if (drawType === 'corners') {
+            const size = Math.round((((box.maxX - box.minX) + (box.maxY - box.minY)) / 2) * 0.1);
+            drawingRegion.moveTo(box.minX, box.minY + size);
+            drawingRegion.lineTo(box.minX, box.minY);
+            drawingRegion.lineTo(box.minX + size, box.minY);
+            drawingRegion.moveTo(box.maxX - size, box.minY);
+            drawingRegion.lineTo(box.maxX, box.minY);
+            drawingRegion.lineTo(box.maxX, box.minY + size);
+            drawingRegion.moveTo(box.maxX, box.maxY - size);
+            drawingRegion.lineTo(box.maxX, box.maxY);
+            drawingRegion.lineTo(box.maxX - size, box.maxY);
+            drawingRegion.moveTo(box.minX + size, box.maxY);
+            drawingRegion.lineTo(box.minX, box.maxY);
+            drawingRegion.lineTo(box.minX, box.maxY - size);
+          } else drawingRegion.rect(box.minX, box.minY, box.maxX - box.minX, box.maxY - box.minY);
         } else {
-          drawingRegion = drawPath(
-            [10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
-              397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
-              172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109].map(
-                idx => [(results.multiFaceLandmarks[0][idx].x * canvas.width), (results.multiFaceLandmarks[0][idx].y * canvas.height)]
-              )
-          );
+          drawingRegion = drawPath([
+            10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361,
+            288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150,
+            136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
+          ].map(idx => [
+            (results.multiFaceLandmarks[0][idx].x * canvas.width),
+            (results.multiFaceLandmarks[0][idx].y * canvas.height),
+          ]));
         }
         minX = Infinity; minY = Infinity; maxX = 0; maxY = 0;
         const points = [
@@ -241,6 +255,7 @@ const startScan = (
       if (typeof drawProps === 'object') {
         switch (drawProps.drawType) {
           case 'bounding-box': drawType = 'box'; break;
+          case 'corner-box': drawType = 'corners'; break;
           default: console.log("Provided Draw-Type is Invalid!\nSwitching to default...");
           case undefined: case 'face-circle': drawType = 'faceCircle';
         }
