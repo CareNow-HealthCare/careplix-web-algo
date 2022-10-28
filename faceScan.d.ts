@@ -1,5 +1,14 @@
 declare type intensity = { r: number, g: number, b: number };
-declare function startScan(minimumScanTime_inMS?: number, totalScanTime_inMS?: number, modelPath?: string): Promise<void>;
+declare function startScan(
+    minimumScanTime_inMS?: number,
+    totalScanTime_inMS?: number,
+    modelPath?: string,
+    lightModeRedetectionInterval_inMS?: number,
+    drawProps?: {
+        drawType: "face-circle" | "bounding-box";
+        color: string;
+    }
+): Promise<void>;
 declare function stopScan(noCallback?: boolean): void;
 declare namespace faceScan {
     export { startScan };
