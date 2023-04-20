@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.8/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.10/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.8/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.10/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -37,8 +37,8 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 Include the following html elements in the Scan Page.
 ```html
 <div style="height: 100vh; position: relative;">
-    <video id="videoInput" width="0" height="0" autoplay muted hidden playsinline></video>
-    <canvas id="canvasOutput" style="width:100%; height:100%; transform: scaleX(-1);"></canvas>
+    <video id="videoInput" style="position: fixed; right: 1rem; top: 1rem; height: 1px; width: 1px; background-color: #000;" autoplay muted playsinline></video>
+    <canvas id="canvasOutput" style="width: 100%; height: 100%; transform: scaleX(-1);"></canvas>
 </div>
 ```
 
@@ -59,6 +59,21 @@ faceScan.onScanFinish(({ raw_intensity, ppg_time, average_fps }) => {
 faceScan.startScan().then(() => {
   console.log('Scan Started')
 });
+```
+
+> Note: If you're using React, please consider the following approach...
+```js
+React.useEffect(() => {
+  // intialize all the callbacks like onFrame, onScanFinish, onError etc.
+
+  // Start Scan Process
+  faceScan.startScan()
+
+  return function cleanup () {
+    // be sure to cancel the ongoing scan in cleanup function
+    faceScan.stopScan(true);
+  }
+}, []);
 ```
 
 ### `onFrame()`
@@ -95,7 +110,7 @@ This function call starts the Scan.
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |
 | lightModeRedetectionInterval_inMS | number | 3000 | Face Re-Detection interval when in Light Mode ([Read More](#light-mode)) |
-| drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "rgba(107,184,248,0.8)",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box" or "corner-box"<br>**color** can be any valid Color string |
+| drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "#fff",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box" or "corner-box"<br>**color** can be any valid Color string |
 
 ### `stopScan()`
 This function call stops the Scan.
@@ -135,6 +150,21 @@ fingerScan.onScanFinish(({ raw_intensity, ppg_time, average_fps }) => {
 fingerScan.startScan().then(() => {
   console.log('Scan Started')
 });
+```
+
+> Note: If you're using React, please consider the following approach...
+```js
+React.useEffect(() => {
+  // intialize all the callbacks like onFrame, onScanFinish, onError etc.
+
+  // Start Scan Process
+  fingerScan.startScan()
+
+  return function cleanup () {
+    // be sure to cancel the ongoing scan in cleanup function
+    fingerScan.stopScan(true);
+  }
+}, []);
 ```
 
 ### `onFrame()`
