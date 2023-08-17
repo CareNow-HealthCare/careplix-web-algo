@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.10/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.11/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.10/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.11/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -229,6 +229,3 @@ function captureImage() {
     */
 }
 ```
-
-## License
-MIT

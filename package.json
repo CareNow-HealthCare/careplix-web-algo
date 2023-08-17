@@ -1,26 +1,35 @@
 {
   "type": "module",
   "name": "careplix-web-algo",
-  "version": "2.0.10",
+  "version": "2.0.11",
   "main": "index.js",
   "scripts": {
     "build": "browserify faceScan.js -o dist/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan && browserify fingerScan.js -o dist/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"
   },
-  "description": "NPM module which contains the processing the frontend code",
+  "description": "CarePlix Web NPM Package to process Raw-Data from Camera Input",
   "keywords": [
     "CarePlix",
-    "ios",
-    "android",
+    "FaceScan",
+    "FingerScan",
+    "PPG",
+    "RPPG",
     "PWA",
-    "RPPG"
+    "iOS",
+    "Android"
   ],
-  "author": "Silverx47 <arnab.ganguly@carenow.healthcare> (https://github.com/Silverx47)",
-  "license": "MIT",
-  "repository": "https://github.com/CareNow-HealthCare/careplix-web-algo",
+  "author": "CareNow HealthCare <help@carenow.healthcare> (https://github.com/CareNow-HealthCare)",
+  "maintainers": [
+    "Arnab-CarePlix <arnab@careplix.com> (https://github.com/Arnab-CarePlix)"
+  ],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CareNow-HealthCare/careplix-web-algo.git"
+  },
   "bugs": {
     "url": "https://github.com/CareNow-HealthCare/careplix-web-algo/issues"
   },
-  "homepage": "https://github.com/CareNow-HealthCare/careplix-web-algo/careplix-web-algo#readme",
+  "homepage": "https://github.com/CareNow-HealthCare/careplix-web-algo#readme",
   "dependencies": {
     "@mediapipe/face_mesh": "^0.4.1633559619"
   },

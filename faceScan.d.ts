@@ -5,7 +5,7 @@ declare function startScan(
     modelPath?: string,
     lightModeRedetectionInterval_inMS?: number,
     drawProps?: {
-        drawType: "face-circle" | "bounding-box";
+        drawType: "face-circle" | "bounding-box" | "corner-box";
         color: string;
     }
 ): Promise<void>;

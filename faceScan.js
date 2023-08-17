@@ -23,7 +23,7 @@ const faceScan = (() => {
   let drawType = "faceCircle";
   let drawColor = "#fff";
   let drawingRegion = undefined;
-  let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+  let minX = 0, minY = 0, maxX = 0, maxY = 0;
   let calibrationFPSArray = [];
 
   let isFaceInView = false;
@@ -83,7 +83,7 @@ const faceScan = (() => {
       fmesh.onResults((results) => {
         if (results?.multiFaceLandmarks?.[0]?.length > 0) {
           if (drawType !== "faceCircle") {
-            const box = { minX: Infinity, minY: Infinity, maxX: 0, maxY: 0 };
+            const box = { minX: canvas.width, minY: canvas.height, maxX: 0, maxY: 0 };
             results.multiFaceLandmarks[0].forEach((point) => {
               const x = point.x * canvas.width;
               const y = point.y * canvas.height;
@@ -118,7 +118,7 @@ const faceScan = (() => {
               (results.multiFaceLandmarks[0][idx].y * canvas.height),
             ]));
           }
-          minX = Infinity; minY = Infinity; maxX = 0; maxY = 0;
+          minX = canvas.width; minY = canvas.height; maxX = 0; maxY = 0;
           const points = [
             114, 121, 120, 119, 118, 117, 111, 116, 123, 147, 187, 207, 206, 203, 142, 126, 217, // Left  Cheek
             343, 350, 349, 348, 347, 346, 340, 345, 352, 376, 411, 427, 426, 423, 371, 355, 437, // Right Cheek
@@ -246,7 +246,7 @@ const faceScan = (() => {
     drawType = "faceCircle";
     drawColor = "#fff";
     drawingRegion = undefined;
-    minX = Infinity; minY = Infinity; maxX = 0; maxY = 0;
+    minX = 0; minY = 0; maxX = 0; maxY = 0;
     calibrationFPSArray = [];
     raw_intensity = [];
     ppg_time = [];
@@ -314,6 +314,8 @@ const faceScan = (() => {
         // Create canvas and drawing context
         canvas = document.getElementById("canvasOutput");
         if (canvas) {
+          minX = video.videoWidth;
+          minY = video.videoHeight;
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           ctx = canvas.getContext("2d");
