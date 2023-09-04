@@ -1,0 +1,36 @@
+Proprietary Software License
+
+This proprietary software license ("License") is granted by CarePlix LLC ("Licensor") to any individual or entity (hereinafter referred to as "Licensee") who wishes to use, copy, modify, or distribute the software code and associated documentation (the "Software").
+
+BY DOWNLOADING, INSTALLING, COPYING, MODIFYING, OR OTHERWISE USING THE SOFTWARE, LICENSEE AGREES TO BE BOUND BY THE TERMS OF THIS LICENSE. IF YOU DO NOT AGREE TO THESE TERMS, DO NOT USE THE SOFTWARE.
+
+1. License Grant:
+   1.1. Licensor grants Licensee a limited, non-exclusive, non-transferable, and revocable license to use the Software solely for internal, non-commercial purposes.
+   
+2. Restrictions:
+   2.1. Licensee shall not, without the prior written consent of Licensor:
+       a) Copy, reproduce, or duplicate the Software, in whole or in part, except as expressly permitted by this License.
+       b) Modify, adapt, or create derivative works based on the Software.
+       c) Sell, sublicense, distribute, or transfer the Software or any rights granted under this License to any third party.
+       d) Remove, alter, or obscure any copyright, trademark, or other proprietary notices included in the Software.
+       e) Reverse engineer, decompile, disassemble, or attempt to discover the source code of the Software.
+
+3. Ownership:
+   3.1. Licensor retains all right, title, and interest in and to the Software, including all intellectual property rights.
+
+4. Warranty Disclaimer:
+   4.1. THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. LICENSOR DISCLAIMS ALL WARRANTIES AND SHALL NOT BE LIABLE FOR ANY DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE.
+
+5. Termination:
+   5.1. This License is effective until terminated by Licensor. Licensor may terminate this License at any time for any reason, with or without notice. Upon termination, Licensee shall immediately cease using the Software and destroy all copies in their possession.
+
+6. Governing Law:
+   6.1. This License shall be governed by and construed in accordance with the laws of India, excluding its conflict of law principles.
+
+7. Entire Agreement:
+   7.1. This License constitutes the entire agreement between Licensee and Licensor regarding the Software and supersedes all prior or contemporaneous oral or written agreements, representations, or understandings.
+
+IN WITNESS WHEREOF, the parties hereto have executed this License as of the date Licensee first used the Software.
+
+CarePlix LLC
+71, D/1, Swinhoe Ln., New Ballygunge, Kasba, Kolkata, West Bengal - 700042
