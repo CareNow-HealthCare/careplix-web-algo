@@ -1,11 +1,9 @@
 {
   "type": "module",
   "name": "careplix-web-algo",
-  "version": "2.0.11",
+  "version": "3.0.0",
   "main": "index.js",
-  "scripts": {
-    "build": "browserify faceScan.js -o dist/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan && browserify fingerScan.js -o dist/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"
-  },
+  "scripts": {},
   "description": "CarePlix Web NPM Package to process Raw-Data from Camera Input",
   "keywords": [
     "CarePlix",
@@ -30,15 +28,6 @@
     "url": "https://github.com/CareNow-HealthCare/careplix-web-algo/issues"
   },
   "homepage": "https://github.com/CareNow-HealthCare/careplix-web-algo#readme",
-  "dependencies": {
-    "@mediapipe/face_mesh": "^0.4.1633559619"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.18.6",
-    "@babel/preset-env": "^7.18.6",
-    "babel-plugin-add-module-exports": "^1.0.4",
-    "babelify": "^10.0.0",
-    "browserify": "^17.0.0",
-    "uglifyify": "^5.0.2"
-  }
+  "dependencies": {},
+  "devDependencies": {}
 }
