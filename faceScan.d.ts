@@ -2,6 +2,7 @@ declare type intensity = { r: number; g: number; b: number };
 declare function startScan({
   calibrationTime_inSec,
   scanTime_inSec,
+  liteModeRedetectionInterval_inSec,
   models_path,
   draw_type,
   draw_color,
@@ -11,6 +12,7 @@ declare function startScan({
 }: {
   calibrationTime_inSec?: number;
   scanTime_inSec?: number;
+  liteModeRedetectionInterval_inSec?: number;
   models_path?: string;
   draw_type?: "face-circle" | "bounding-box" | "corner-box";
   draw_color?: string;
@@ -28,11 +30,13 @@ declare namespace faceScan {
       timeElapsed,
       percentage,
       isFaceInView,
+      isLiteMode,
     }: {
       type: "calibration" | "scan";
       timeElapsed: number;
       percentage: number;
       isFaceInView: boolean;
+      isLiteMode: boolean;
     }) => void
   ): void;
   export function onScanFinish(
