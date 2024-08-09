@@ -1,5 +1,6 @@
 declare type intensity = { r: number, g: number, b: number };
 declare function startScan(
+    calibrationTime_inMS?: number,
     minimumScanTime_inMS?: number,
     totalScanTime_inMS?: number,
     modelPath?: string,

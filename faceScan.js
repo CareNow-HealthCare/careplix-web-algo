@@ -1,7 +1,7 @@
 import { FaceMesh } from "@mediapipe/face_mesh";
 
 const faceScan = (() => {
-  const totalCalibrationTime = 20000;
+  let calibrationTime = 20000;
   let minimumScanTime = 60000;
   let totalScanTime = 120000;
   let lightModeInterval_inS = 3;
@@ -14,16 +14,19 @@ const faceScan = (() => {
   let canvas;
   let ctx;
 
-  let onFrameCallback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => { };
-  let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => { };
-  let onErrorCallback = (err = new Error("Facescan Error.")) => { };
+  let onFrameCallback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => {};
+  let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {};
+  let onErrorCallback = (err = new Error("Facescan Error.")) => {};
 
   let wakeLock = undefined;
   let fmesh;
   let drawType = "faceCircle";
   let drawColor = "#fff";
   let drawingRegion = undefined;
-  let minX = 0, minY = 0, maxX = 0, maxY = 0;
+  let minX = 0,
+    minY = 0,
+    maxX = 0,
+    maxY = 0;
   let calibrationFPSArray = [];
 
   let isFaceInView = false;
@@ -32,38 +35,41 @@ const faceScan = (() => {
   let ppg_time = [];
   let fps_array = [];
 
-  const setupCamera = () => new Promise(async (resolve, reject) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: "user", aspectRatio: 16 / 9 },
-      });
-      video.srcObject = stream;
-      video.onloadedmetadata = () => {
-        resolve();
-      };
-    } catch (error) {
-      reject(new Error("We are not able to access the Camera. Please try again."));
-    }
-  });
+  const setupCamera = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: "user", aspectRatio: 16 / 9 },
+        });
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          resolve();
+        };
+      } catch (error) {
+        reject(new Error("We are not able to access the Camera. Please try again."));
+      }
+    });
 
   const stopScan = (noCallback = false) => {
     isScanning = false;
     window.onblur = undefined;
-    wakeLock?.release()
-      .then(() => console.log('WakeLock Released.'))
-      .catch(err => {
-        console.log('WakeLock Error.');
+    wakeLock
+      ?.release()
+      .then(() => console.log("WakeLock Released."))
+      .catch((err) => {
+        console.log("WakeLock Error.");
         console.error(err);
       });
     video?.srcObject?.getTracks?.()?.forEach?.((track) => {
       track?.stop?.();
     });
-    if (!noCallback && canStop) onScanFinishCallback({
-      raw_intensity,
-      ppg_time,
-      average_fps: Math.round(fps_array.reduce((sum, value) => sum + value, 0) / fps_array.length),
-    });
+    if (!noCallback && canStop)
+      onScanFinishCallback({
+        raw_intensity,
+        ppg_time,
+        average_fps: Math.round(fps_array.reduce((sum, value) => sum + value, 0) / fps_array.length),
+      });
   };
 
   const drawPath = (points) => {
@@ -77,78 +83,113 @@ const faceScan = (() => {
     return region;
   };
 
-  const getRegion = () => new Promise(async (resolve, reject) => {
-    try {
-      fmesh.send({ image: video });
-      fmesh.onResults((results) => {
-        if (results?.multiFaceLandmarks?.[0]?.length > 0) {
-          if (drawType !== "faceCircle") {
-            const box = { minX: canvas.width, minY: canvas.height, maxX: 0, maxY: 0 };
-            results.multiFaceLandmarks[0].forEach((point) => {
-              const x = point.x * canvas.width;
-              const y = point.y * canvas.height;
-              box.minX = Math.min(box.minX, x);
-              box.minY = Math.min(box.minY, y);
-              box.maxX = Math.max(box.maxX, x);
-              box.maxY = Math.max(box.maxY, y);
+  const getRegion = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        fmesh.send({ image: video });
+        fmesh.onResults((results) => {
+          if (results?.multiFaceLandmarks?.[0]?.length > 0) {
+            if (drawType !== "faceCircle") {
+              const box = { minX: canvas.width, minY: canvas.height, maxX: 0, maxY: 0 };
+              results.multiFaceLandmarks[0].forEach((point) => {
+                const x = point.x * canvas.width;
+                const y = point.y * canvas.height;
+                box.minX = Math.min(box.minX, x);
+                box.minY = Math.min(box.minY, y);
+                box.maxX = Math.max(box.maxX, x);
+                box.maxY = Math.max(box.maxY, y);
+              });
+              drawingRegion = new Path2D();
+              if (drawType === "corners") {
+                const size = Math.round(((box.maxX - box.minX + (box.maxY - box.minY)) / 2) * 0.1);
+                drawingRegion.moveTo(box.minX, box.minY + size);
+                drawingRegion.lineTo(box.minX, box.minY);
+                drawingRegion.lineTo(box.minX + size, box.minY);
+                drawingRegion.moveTo(box.maxX - size, box.minY);
+                drawingRegion.lineTo(box.maxX, box.minY);
+                drawingRegion.lineTo(box.maxX, box.minY + size);
+                drawingRegion.moveTo(box.maxX, box.maxY - size);
+                drawingRegion.lineTo(box.maxX, box.maxY);
+                drawingRegion.lineTo(box.maxX - size, box.maxY);
+                drawingRegion.moveTo(box.minX + size, box.maxY);
+                drawingRegion.lineTo(box.minX, box.maxY);
+                drawingRegion.lineTo(box.minX, box.maxY - size);
+              } else drawingRegion.rect(box.minX, box.minY, box.maxX - box.minX, box.maxY - box.minY);
+            } else {
+              drawingRegion = drawPath(
+                [
+                  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136, 172, 58, 132,
+                  93, 234, 127, 162, 21, 54, 103, 67, 109,
+                ].map((idx) => [results.multiFaceLandmarks[0][idx].x * canvas.width, results.multiFaceLandmarks[0][idx].y * canvas.height])
+              );
+            }
+            minX = canvas.width;
+            minY = canvas.height;
+            maxX = 0;
+            maxY = 0;
+            const points = [
+              114,
+              121,
+              120,
+              119,
+              118,
+              117,
+              111,
+              116,
+              123,
+              147,
+              187,
+              207,
+              206,
+              203,
+              142,
+              126,
+              217, // Left  Cheek
+              343,
+              350,
+              349,
+              348,
+              347,
+              346,
+              340,
+              345,
+              352,
+              376,
+              411,
+              427,
+              426,
+              423,
+              371,
+              355,
+              437, // Right Cheek
+            ].map((idx) => {
+              const x = results.multiFaceLandmarks[0][idx].x * canvas.width;
+              const y = results.multiFaceLandmarks[0][idx].y * canvas.height;
+              minX = Math.min(minX, x);
+              minY = Math.min(minY, y);
+              maxX = Math.max(maxX, x);
+              maxY = Math.max(maxY, y);
+              return [x, y];
             });
-            drawingRegion = new Path2D();
-            if (drawType === "corners") {
-              const size = Math.round((((box.maxX - box.minX) + (box.maxY - box.minY)) / 2) * 0.1);
-              drawingRegion.moveTo(box.minX, box.minY + size);
-              drawingRegion.lineTo(box.minX, box.minY);
-              drawingRegion.lineTo(box.minX + size, box.minY);
-              drawingRegion.moveTo(box.maxX - size, box.minY);
-              drawingRegion.lineTo(box.maxX, box.minY);
-              drawingRegion.lineTo(box.maxX, box.minY + size);
-              drawingRegion.moveTo(box.maxX, box.maxY - size);
-              drawingRegion.lineTo(box.maxX, box.maxY);
-              drawingRegion.lineTo(box.maxX - size, box.maxY);
-              drawingRegion.moveTo(box.minX + size, box.maxY);
-              drawingRegion.lineTo(box.minX, box.maxY);
-              drawingRegion.lineTo(box.minX, box.maxY - size);
-            } else drawingRegion.rect(box.minX, box.minY, box.maxX - box.minX, box.maxY - box.minY);
+            const region = new Path2D();
+            region.addPath(drawPath(points.slice(0, 17)));
+            region.addPath(drawPath(points.slice(17)));
+            noDetectionCount = 0;
+            isFaceInView = true;
+            resolve(region);
           } else {
-            drawingRegion = drawPath([
-              10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361,
-              288, 397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150,
-              136, 172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109,
-            ].map((idx) => [
-              (results.multiFaceLandmarks[0][idx].x * canvas.width),
-              (results.multiFaceLandmarks[0][idx].y * canvas.height),
-            ]));
+            isFaceInView = false;
+            resolve(undefined);
           }
-          minX = canvas.width; minY = canvas.height; maxX = 0; maxY = 0;
-          const points = [
-            114, 121, 120, 119, 118, 117, 111, 116, 123, 147, 187, 207, 206, 203, 142, 126, 217, // Left  Cheek
-            343, 350, 349, 348, 347, 346, 340, 345, 352, 376, 411, 427, 426, 423, 371, 355, 437, // Right Cheek
-          ].map(idx => {
-            const x = results.multiFaceLandmarks[0][idx].x * canvas.width;
-            const y = results.multiFaceLandmarks[0][idx].y * canvas.height;
-            minX = Math.min(minX, x);
-            minY = Math.min(minY, y);
-            maxX = Math.max(maxX, x);
-            maxY = Math.max(maxY, y);
-            return [x, y];
-          });
-          const region = new Path2D();
-          region.addPath(drawPath(points.slice(0, 17)));
-          region.addPath(drawPath(points.slice(17)));
-          noDetectionCount = 0;
-          isFaceInView = true;
-          resolve(region);
-        } else {
-          isFaceInView = false;
-          resolve(undefined);
-        }
-      });
-    } catch (err) {
-      reject(err);
-    }
-  });
+        });
+      } catch (err) {
+        reject(err);
+      }
+    });
 
   const calcRGB_fromImageData = (imgData) => {
-    let count = 0, sumRGB = { r: 0, g: 0, b: 0 };
+    let count = 0,
+      sumRGB = { r: 0, g: 0, b: 0 };
     for (let i = 0; i < imgData.data.length; i += 4) {
       if (imgData.data[i + 3] > 0) {
         count++;
@@ -157,7 +198,7 @@ const faceScan = (() => {
         sumRGB.b += imgData.data[i + 2];
       }
     }
-    return { r: (sumRGB.r / count), g: (sumRGB.g / count), b: (sumRGB.b / count) };
+    return { r: sumRGB.r / count, g: sumRGB.g / count, b: sumRGB.b / count };
   };
 
   const drawCanvas = (drawRegion = undefined, cutRegion = { region: undefined, rect: { x: 0, y: 0, w: 0, h: 0 } }) => {
@@ -188,7 +229,7 @@ const faceScan = (() => {
     const timeElapsed = performance.now() - start_time;
     try {
       if (isScanning) {
-        if (timeElapsed <= totalCalibrationTime) {
+        if (timeElapsed <= calibrationTime) {
           drawCanvas(undefined, { region: undefined, rect: { x: 0, y: 0, w: canvas.width, h: canvas.height } });
           getRegion().then(() => calibrationFPSArray.push(1000 / (performance.now() - loop_start_time)));
           onFrameCallback({
@@ -198,15 +239,19 @@ const faceScan = (() => {
             fps: calibrationFPSArray[calibrationFPSArray.length - 1],
           });
           requestAnimationFrame(scan);
-        } else if (timeElapsed <= (totalCalibrationTime + totalScanTime)) {
+        } else if (timeElapsed <= calibrationTime + totalScanTime) {
           if (noDetectionCount > 100) {
             stopScan(true);
             onErrorCallback(new Error("Unable to measure your vitals.\nTry to look at the camera the next time."));
           } else {
-            if (timeElapsed > (totalCalibrationTime + minimumScanTime)) canStop = true;
+            if (timeElapsed > calibrationTime + minimumScanTime) canStop = true;
             else canStop = false;
             let region = undefined;
-            if (((Math.floor(timeElapsed / 1000) % lightModeInterval_inS) !== 0) && ((calibrationFPSArray.reduce((sum, value) => sum + value, 0) / calibrationFPSArray.length) < 15)) region = undefined;
+            if (
+              Math.floor(timeElapsed / 1000) % lightModeInterval_inS !== 0 &&
+              calibrationFPSArray.reduce((sum, value) => sum + value, 0) / calibrationFPSArray.length < 15
+            )
+              region = undefined;
             else region = await getRegion();
             if (!isFaceInView) noDetectionCount++;
             const avgRGB = drawCanvas(drawingRegion, { region, rect: { x: minX, y: minY, w: maxX - minX, h: maxY - minY } });
@@ -216,7 +261,7 @@ const faceScan = (() => {
             onFrameCallback({
               type: "scan",
               timeElapsed,
-              isLightMode: (typeof region === "undefined"),
+              isLightMode: typeof region === "undefined",
               fps: fps_array[fps_array.length - 1],
             });
             requestAnimationFrame(scan);
@@ -233,9 +278,10 @@ const faceScan = (() => {
   };
 
   const startScan = (
+    calibrationTime_inMS = 20000,
     minimumScanTime_inMS = 60000,
     totalScanTime_inMS = 120000,
-    modelPath = "https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh",
+    modelPath = "https://content.careplix.com/careplix-web-algo-models/V2",
     lightModeRedetectionInterval_inMS = 3000,
     drawProps = { drawType: "face-circle", color: "#fff" }
   ) => {
@@ -246,7 +292,10 @@ const faceScan = (() => {
     drawType = "faceCircle";
     drawColor = "#fff";
     drawingRegion = undefined;
-    minX = 0; minY = 0; maxX = 0; maxY = 0;
+    minX = 0;
+    minY = 0;
+    maxX = 0;
+    maxY = 0;
     calibrationFPSArray = [];
     raw_intensity = [];
     ppg_time = [];
@@ -254,10 +303,9 @@ const faceScan = (() => {
 
     return new Promise(async (resolve, reject) => {
       try {
-        if (minimumScanTime_inMS < 60000)
-          throw new Error("Minimum 60 seconds of Scan is Mandatory.");
-        if (minimumScanTime_inMS > totalScanTime_inMS)
-          throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
+        if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration should be in 3000-20000ms range.");
+        if (minimumScanTime_inMS < 60000) throw new Error("Minimum 60 seconds of Scan is Mandatory.");
+        if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
         if (lightModeRedetectionInterval_inMS < 3000 || lightModeRedetectionInterval_inMS > 5000)
           throw new Error("Light mode Re-Detection Interval should be in 3000-5000ms range.");
         if (typeof drawProps === "object") {
@@ -281,17 +329,19 @@ const faceScan = (() => {
             else drawColor = s.color;
           }
         } else throw new Error("Invalid Draw-Properties Provided.");
+        calibrationTime = calibrationTime_inMS;
         minimumScanTime = minimumScanTime_inMS;
         totalScanTime = totalScanTime_inMS;
         lightModeInterval_inS = Math.round(lightModeRedetectionInterval_inMS / 1000);
 
-        navigator.wakeLock?.request('screen')
-          .then(wakeLockSentinel => {
+        navigator.wakeLock
+          ?.request("screen")
+          .then((wakeLockSentinel) => {
             wakeLock = wakeLockSentinel;
-            console.log('WakeLock Active.');
+            console.log("WakeLock Active.");
           })
-          .catch(err => {
-            console.log('WakeLock Error.');
+          .catch((err) => {
+            console.log("WakeLock Error.");
             console.error(err);
           });
 
@@ -341,13 +391,13 @@ const faceScan = (() => {
   return {
     startScan,
     stopScan,
-    onFrame: (callback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => { }) => {
+    onFrame: (callback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => {}) => {
       if (typeof callback === "function") onFrameCallback = callback;
     },
-    onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => { }) => {
+    onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {}) => {
       if (typeof callback === "function") onScanFinishCallback = callback;
     },
-    onError: (callback = (err = new Error("Facescan Error.")) => { }) => {
+    onError: (callback = (err = new Error("Facescan Error.")) => {}) => {
       if (typeof callback === "function") onErrorCallback = callback;
     },
     get isInitializing() {

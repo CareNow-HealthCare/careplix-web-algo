@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "careplix-web-algo",
-  "version": "2.0.11",
+  "version": "2.1.0",
   "main": "index.js",
   "scripts": {
     "build": "browserify faceScan.js -o dist/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan && browserify fingerScan.js -o dist/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"
@@ -31,7 +31,7 @@
   },
   "homepage": "https://github.com/CareNow-HealthCare/careplix-web-algo#readme",
   "dependencies": {
-    "@mediapipe/face_mesh": "^0.4.1633559619"
+    "@mediapipe/face_mesh": "0.4.1633559619"
   },
   "devDependencies": {
     "@babel/core": "^7.18.6",

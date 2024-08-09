@@ -106,6 +106,7 @@ When the scan is finished successfully, this callback will be called with raw da
 This function call starts the Scan.
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
+| calibrationTime_inMS | number | 20000 | Duration of the Calibration phase in ms |
 | minimumScanTime_inMS | number | 60000 | Minimum Duration of the Scan in ms |
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |

@@ -1,5 +1,5 @@
 const fingerScan = (() => {
-  const totalCalibrationTime = 20000;
+  let calibrationTime = 20000;
   let minimumScanTime = 60000;
   let totalScanTime = 120000;
 
@@ -12,9 +12,9 @@ const fingerScan = (() => {
   let canvas;
   let ctx;
 
-  let onFrameCallback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => { };
-  let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => { };
-  let onErrorCallback = (err = new Error("Fingerscan Error.")) => { };
+  let onFrameCallback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => {};
+  let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {};
+  let onErrorCallback = (err = new Error("Fingerscan Error.")) => {};
 
   let wakeLock = undefined;
 
@@ -24,30 +24,34 @@ const fingerScan = (() => {
   let ppg_time = [];
   let fps_array = [];
 
-  const setupCamera = () => new Promise(async (resolve, reject) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: "environment", aspectRatio: 16 / 9 },
-      });
-      stream.getVideoTracks()?.[0]?.applyConstraints?.({ advanced: [{ torch: true }] })
-        .catch(() => console.error("Flash could not be acquired."));
-      video.srcObject = stream;
-      video.onloadedmetadata = () => {
-        resolve();
-      };
-    } catch (error) {
-      reject(new Error("We are not able to access the Camera. Please try again."));
-    }
-  });
+  const setupCamera = () =>
+    new Promise(async (resolve, reject) => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: "environment", aspectRatio: 16 / 9 },
+        });
+        stream
+          .getVideoTracks()?.[0]
+          ?.applyConstraints?.({ advanced: [{ torch: true }] })
+          .catch(() => console.error("Flash could not be acquired."));
+        video.srcObject = stream;
+        video.onloadedmetadata = () => {
+          resolve();
+        };
+      } catch (error) {
+        reject(new Error("We are not able to access the Camera. Please try again."));
+      }
+    });
 
   const stopScan = (noCallback = false) => {
     isScanning = false;
     window.onblur = undefined;
-    wakeLock?.release()
-      .then(() => console.log('WakeLock Released.'))
-      .catch(err => {
-        console.log('WakeLock Error.');
+    wakeLock
+      ?.release()
+      .then(() => console.log("WakeLock Released."))
+      .catch((err) => {
+        console.log("WakeLock Error.");
         console.error(err);
       });
     video?.srcObject?.getTracks?.()?.forEach?.((track) => {
@@ -78,7 +82,8 @@ const fingerScan = (() => {
   };
 
   const calcRGB_fromImageData = (imgData) => {
-    let count = 0, sumRGB = { r: 0, g: 0, b: 0 };
+    let count = 0,
+      sumRGB = { r: 0, g: 0, b: 0 };
     for (let i = 0; i < imgData.data.length; i += 4) {
       if (imgData.data[i + 3] > 0) {
         count++;
@@ -87,7 +92,7 @@ const fingerScan = (() => {
         sumRGB.b += imgData.data[i + 2];
       }
     }
-    return { r: (sumRGB.r / count), g: (sumRGB.g / count), b: (sumRGB.b / count) };
+    return { r: sumRGB.r / count, g: sumRGB.g / count, b: sumRGB.b / count };
   };
 
   const drawCanvas = () => {
@@ -103,22 +108,22 @@ const fingerScan = (() => {
     const timeElapsed = performance.now() - start_time;
     try {
       if (isScanning) {
-        if (timeElapsed <= totalCalibrationTime) {
+        if (timeElapsed <= calibrationTime) {
           const avgRGB = drawCanvas();
           const confidence = calcConfidence(avgRGB);
           onFrameCallback({
             type: "calibration",
             timeElapsed,
             confidence,
-            fps: (1000 / (performance.now() - loop_start_time)),
+            fps: 1000 / (performance.now() - loop_start_time),
           });
           requestAnimationFrame(scan);
-        } else if (timeElapsed <= (totalCalibrationTime + totalScanTime)) {
+        } else if (timeElapsed <= calibrationTime + totalScanTime) {
           if (noDetectionCount > 200) {
             stopScan(true);
             onErrorCallback(new Error("Unable to measure your vitals.\nTry to keep your finger steady the next time."));
           } else {
-            if (timeElapsed > (totalCalibrationTime + minimumScanTime)) canStop = true;
+            if (timeElapsed > calibrationTime + minimumScanTime) canStop = true;
             else canStop = false;
             const avgRGB = drawCanvas();
             const confidence = calcConfidence(avgRGB);
@@ -145,7 +150,7 @@ const fingerScan = (() => {
     }
   };
 
-  const startScan = (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
+  const startScan = (calibrationTime_inMS = 20000, minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
     isScanning = false;
     canStop = false;
     isFingerInView = false;
@@ -156,20 +161,21 @@ const fingerScan = (() => {
 
     return new Promise(async (resolve, reject) => {
       try {
-        if (minimumScanTime_inMS < 60000)
-          throw new Error("Minimum 60 seconds of Scan is Mandatory.");
-        if (minimumScanTime_inMS > totalScanTime_inMS)
-          throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
+        if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration should be in 3000-20000ms range.");
+        if (minimumScanTime_inMS < 60000) throw new Error("Minimum 60 seconds of Scan is Mandatory.");
+        if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
+        calibrationTime = calibrationTime_inMS;
         minimumScanTime = minimumScanTime_inMS;
         totalScanTime = totalScanTime_inMS;
 
-        navigator.wakeLock?.request('screen')
-          .then(wakeLockSentinel => {
+        navigator.wakeLock
+          ?.request("screen")
+          .then((wakeLockSentinel) => {
             wakeLock = wakeLockSentinel;
-            console.log('WakeLock Active.');
+            console.log("WakeLock Active.");
           })
-          .catch(err => {
-            console.log('WakeLock Error.');
+          .catch((err) => {
+            console.log("WakeLock Error.");
             console.error(err);
           });
 
@@ -208,13 +214,13 @@ const fingerScan = (() => {
   return {
     startScan,
     stopScan,
-    onFrame: (callback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => { }) => {
+    onFrame: (callback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => {}) => {
       if (typeof callback === "function") onFrameCallback = callback;
     },
-    onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => { }) => {
+    onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {}) => {
       if (typeof callback === "function") onScanFinishCallback = callback;
     },
-    onError: (callback = (err = new Error("Fingerscan Error.")) => { }) => {
+    onError: (callback = (err = new Error("Fingerscan Error.")) => {}) => {
       if (typeof callback === "function") onErrorCallback = callback;
     },
     get isInitializing() {
