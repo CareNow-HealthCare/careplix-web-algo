@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.11/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.1/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.0.11/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.1/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -106,12 +106,12 @@ When the scan is finished successfully, this callback will be called with raw da
 This function call starts the Scan.
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
-| calibrationTime_inMS | number | 20000 | Duration of the Calibration phase in ms |
 | minimumScanTime_inMS | number | 60000 | Minimum Duration of the Scan in ms |
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
 | modelPath | string | "/" | Path of the model files, if the files are self-hosted |
 | lightModeRedetectionInterval_inMS | number | 3000 | Face Re-Detection interval when in Light Mode ([Read More](#light-mode)) |
 | drawProps | object | {<br>&nbsp;&nbsp;**drawType:** "face-circle",<br>&nbsp;&nbsp;**color:** "#fff",<br>} | Region Drawing Properties...<br>**drawType** can be "face-circle" or "bounding-box" or "corner-box"<br>**color** can be any valid Color string |
+| calibrationTime_inMS | number | 20000 | Duration of the Calibration phase in ms |
 
 ### `stopScan()`
 This function call stops the Scan.
@@ -200,6 +200,7 @@ This function call starts the Scan.
 | --- | --- | --- | --- |
 | minimumScanTime_inMS | number | 60000 | Minimum Duration of the Scan in ms |
 | totalScanTime_inMS | number | 120000 | Total Duration of the Scan in ms |
+| calibrationTime_inMS | number | 20000 | Duration of the Calibration phase in ms |
 
 ### `stopScan()`
 This function call stops the Scan.

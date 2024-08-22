@@ -278,12 +278,12 @@ const faceScan = (() => {
   };
 
   const startScan = (
-    calibrationTime_inMS = 20000,
     minimumScanTime_inMS = 60000,
     totalScanTime_inMS = 120000,
     modelPath = "https://content.careplix.com/careplix-web-algo-models/V2",
     lightModeRedetectionInterval_inMS = 3000,
-    drawProps = { drawType: "face-circle", color: "#fff" }
+    drawProps = { drawType: "face-circle", color: "#fff" },
+    calibrationTime_inMS = 20000
   ) => {
     isScanning = false;
     canStop = false;

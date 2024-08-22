@@ -150,7 +150,7 @@ const fingerScan = (() => {
     }
   };
 
-  const startScan = (calibrationTime_inMS = 20000, minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000) => {
+  const startScan = (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000, calibrationTime_inMS = 20000) => {
     isScanning = false;
     canStop = false;
     isFingerInView = false;
