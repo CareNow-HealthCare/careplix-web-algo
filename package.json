@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "careplix-web-algo",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "main": "index.js",
   "scripts": {
     "build": "browserify faceScan.js -o dist/faceScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s faceScan && browserify fingerScan.js -o dist/fingerScan.bundle.js -t [ babelify --presets [ @babel/preset-env ] --plugins [ add-module-exports ] ] -g uglifyify -s fingerScan"

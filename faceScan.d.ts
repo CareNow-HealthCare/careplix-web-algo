@@ -14,8 +14,9 @@ declare function stopScan(noCallback?: boolean): void;
 declare namespace faceScan {
     export { startScan };
     export { stopScan };
-    export function onFrame(callback: ({ type, timeElapsed, isLightMode, fps }: {
+    export function onFrame(callback: ({ type, percentage, timeElapsed, isLightMode, fps }: {
         type: "calibration" | "scan";
+        percentage: number;
         timeElapsed: number;
         isLightMode: boolean;
         fps: number;

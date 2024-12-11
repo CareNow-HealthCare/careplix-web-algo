@@ -5,6 +5,7 @@ const fingerScan = (() => {
 
   let isScanning = false;
   let canStop = false;
+  let frameID = 0;
   let start_time;
 
   let video;
@@ -12,7 +13,7 @@ const fingerScan = (() => {
   let canvas;
   let ctx;
 
-  let onFrameCallback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => {};
+  let onFrameCallback = ({ type = "", percentage = 0, timeElapsed = 0, confidence = 0, fps = 0 }) => {};
   let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {};
   let onErrorCallback = (err = new Error("Fingerscan Error.")) => {};
 
@@ -39,12 +40,16 @@ const fingerScan = (() => {
         video.onloadedmetadata = () => {
           resolve();
         };
-      } catch (error) {
-        reject(new Error("We are not able to access the Camera. Please try again."));
+      } catch (err) {
+        reject(new Error("We are not able to access the Camera. Please try again.", { cause: err }));
       }
     });
 
   const stopScan = (noCallback = false) => {
+    cancelAnimationFrame(frameID);
+    video?.srcObject?.getTracks?.()?.forEach?.((track) => {
+      track?.stop?.();
+    });
     isScanning = false;
     window.onblur = undefined;
     wakeLock
@@ -54,9 +59,6 @@ const fingerScan = (() => {
         console.log("WakeLock Error.");
         console.error(err);
       });
-    video?.srcObject?.getTracks?.()?.forEach?.((track) => {
-      track?.stop?.();
-    });
     if (!noCallback && canStop)
       onScanFinishCallback({
         raw_intensity,
@@ -67,12 +69,12 @@ const fingerScan = (() => {
 
   const calcConfidence = (rgb = { r: 0, g: 0, b: 0 }) => {
     let confidence = undefined;
-    if (rgb.r + rgb.g + rgb.b === 0) confidence = 0;
+    if (rgb.r < 5) confidence = 0;
     else {
-      const value = rgb.g + rgb.b;
-      if (value <= 75) confidence = 1;
-      else if (value >= 125) confidence = 0;
-      else confidence = (125 - value) / 50;
+      const nonRed = rgb.g + rgb.b;
+      if (nonRed <= 75) confidence = 1;
+      else if (nonRed >= 125) confidence = 0;
+      else confidence = (125 - nonRed) / 50;
     }
     if (confidence > 0.5) {
       noDetectionCount = 0;
@@ -113,15 +115,18 @@ const fingerScan = (() => {
           const confidence = calcConfidence(avgRGB);
           onFrameCallback({
             type: "calibration",
+            percentage: Math.round((timeElapsed / calibrationTime) * 100),
             timeElapsed,
             confidence,
             fps: 1000 / (performance.now() - loop_start_time),
           });
-          requestAnimationFrame(scan);
+          frameID = requestAnimationFrame(scan);
         } else if (timeElapsed <= calibrationTime + totalScanTime) {
           if (noDetectionCount > 200) {
             stopScan(true);
-            onErrorCallback(new Error("Unable to measure your vitals.\nTry to keep your finger steady the next time."));
+            onErrorCallback(
+              new Error("Ensure your finger is correctly positioned on the camera and there is enough light if the flashlight isn't on.")
+            );
           } else {
             if (timeElapsed > calibrationTime + minimumScanTime) canStop = true;
             else canStop = false;
@@ -133,11 +138,12 @@ const fingerScan = (() => {
             fps_array.push(1000 / (performance.now() - loop_start_time));
             onFrameCallback({
               type: "scan",
+              percentage: Math.round(((timeElapsed - calibrationTime) / totalScanTime) * 100),
               timeElapsed,
               confidence,
               fps: fps_array[fps_array.length - 1],
             });
-            requestAnimationFrame(scan);
+            frameID = requestAnimationFrame(scan);
           }
         } else {
           canStop = true;
@@ -146,11 +152,11 @@ const fingerScan = (() => {
       }
     } catch (err) {
       stopScan(true);
-      onErrorCallback(err ?? new Error("Fingerscan Error."));
+      onErrorCallback(new Error("Sorry we're unable to compute the signal. Please try again.", { cause: err }));
     }
   };
 
-  const startScan = (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000, calibrationTime_inMS = 20000) => {
+  const startScan = async (minimumScanTime_inMS = 60000, totalScanTime_inMS = 120000, calibrationTime_inMS = 20000) => {
     isScanning = false;
     canStop = false;
     isFingerInView = false;
@@ -159,62 +165,56 @@ const fingerScan = (() => {
     ppg_time = [];
     fps_array = [];
 
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration should be in 3000-20000ms range.");
-        if (minimumScanTime_inMS < 60000) throw new Error("Minimum 60 seconds of Scan is Mandatory.");
-        if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
-        calibrationTime = calibrationTime_inMS;
-        minimumScanTime = minimumScanTime_inMS;
-        totalScanTime = totalScanTime_inMS;
+    try {
+      if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration can be between 3000-20000ms range.");
+      if (minimumScanTime_inMS < 30000) throw new Error("Minimum 30 seconds of Scan is Required.");
+      if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
+      calibrationTime = calibrationTime_inMS;
+      minimumScanTime = minimumScanTime_inMS;
+      totalScanTime = totalScanTime_inMS;
 
-        navigator.wakeLock
-          ?.request("screen")
-          .then((wakeLockSentinel) => {
-            wakeLock = wakeLockSentinel;
-            console.log("WakeLock Active.");
-          })
-          .catch((err) => {
-            console.log("WakeLock Error.");
-            console.error(err);
-          });
+      navigator.wakeLock
+        ?.request("screen")
+        .then((wakeLockSentinel) => {
+          wakeLock = wakeLockSentinel;
+          console.log("WakeLock Active.");
+        })
+        .catch((err) => {
+          console.log("WakeLock Error.");
+          console.error(err);
+        });
 
-        // Set up back camera
-        video = document.getElementById("videoInput");
-        if (video) {
-          await setupCamera();
-          video.play();
-        } else throw new Error("Cannot get the video element.");
+      video = document.getElementById("videoInput");
+      if (video) {
+        await setupCamera();
+        await video.play?.();
+      } else throw new Error("Cannot get the video element.");
 
-        // Create canvas and drawing context
-        canvas = document.getElementById("canvasOutput");
-        if (canvas) {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx = canvas.getContext("2d");
-        } else throw new Error("Cannot get the canvas element.");
+      canvas = document.getElementById("canvasOutput");
+      if (canvas) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx = canvas.getContext("2d");
+      } else throw new Error("Cannot get the canvas element.");
 
-        // start prediction loop
-        start_time = performance.now();
-        requestAnimationFrame(scan);
-        isScanning = true;
-        window.onblur = () => {
-          stopScan(true);
-          onErrorCallback(new Error("App in Background."));
-        };
-        resolve();
-      } catch (err) {
+      start_time = performance.now();
+      frameID = requestAnimationFrame(scan);
+      isScanning = true;
+      window.onblur = () => {
         stopScan(true);
-        onErrorCallback(err ?? new Error("Fingerscan Initialization Error."));
-        reject("Fingerscan Initialization Error.");
-      }
-    });
+        onErrorCallback(new Error("App functionality disabled in the Background. Keep it in the Foreground for proper operation."));
+      };
+    } catch (err) {
+      stopScan(true);
+      onErrorCallback(err ?? new Error("Fingerscan Initialization Error."));
+      throw new Error("Fingerscan Initialization Error.", { cause: err });
+    }
   };
 
   return {
     startScan,
     stopScan,
-    onFrame: (callback = ({ type = "", timeElapsed = 0, confidence = 0, fps = 0 }) => {}) => {
+    onFrame: (callback = ({ type = "", percentage = 0, timeElapsed = 0, confidence = 0, fps = 0 }) => {}) => {
       if (typeof callback === "function") onFrameCallback = callback;
     },
     onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {}) => {

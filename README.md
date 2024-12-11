@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.1/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.2/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.1/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.2/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
@@ -45,7 +45,7 @@ Include the following html elements in the Scan Page.
 ## Face Scan
 ```js
 // Initialize the Callbacks
-faceScan.onFrame(({ type, timeElapsed, isLightMode, fps }) => {
+faceScan.onFrame(({ type, percentage, timeElapsed, isLightMode, fps }) => {
   // Save each frame data
 });
 faceScan.onError(err => {
@@ -81,6 +81,7 @@ During Scan you recieve data from every processed frame through this callback.
 | Property Name | Type | Description |
 | --- | --- | --- |
 | type | string | Type of the frame. Which can be either `"calibration"` or `"scan"` |
+| percentage | number | Percentage of completion |
 | timeElapsed | number | Time Elapsed in ms |
 | isLightMode | boolean | `true` if light mode is being used during the scan, due to poor device performance ([Read More](#light-mode)) |
 | fps | number | Current FPS of the frame |
@@ -89,10 +90,10 @@ During Scan you recieve data from every processed frame through this callback.
 If any error occurs during Scan, this callback will be called with the `Error` object.
 | Error Message |	Cause/Reason |
 | --- | --- |
-| Facescan Initialization Error. |	model initialization failed. |
-| Facescan Error. | any general error occured during the scan process. |
-| We are not able to access the Camera. Please try again. | camera is inaccessible. |
-| Unable to measure your vitals. Try to look at the camera the next time. |	face is not properly visible, or not enough light to detect a face. |
+| Please check your internet connection & try again. | SDK failed to download neccessary files for AI scan. |
+| Ensure your face is visible on the screen and there is enough ambient light. | Face is not visible in the camera frame. |
+
+[More Errors...](#Errors)
 
 ### `onScanFinish()`
 When the scan is finished successfully, this callback will be called with raw data, which will be needed for the backend API call.
@@ -137,7 +138,7 @@ The Face Re-Detection interval is configurable during development via the `start
 ## Finger Scan
 ```js
 // Initialize the Callbacks
-fingerScan.onFrame(({ type, timeElapsed, confidence, fps }) => {
+fingerScan.onFrame(({ type, percentage, timeElapsed, confidence, fps }) => {
   // Save each frame data
 });
 fingerScan.onError(err => {
@@ -173,6 +174,7 @@ During Scan you recieve data from every processed frame through this callback.
 | Property Name | Type | Description |
 | --- | --- | --- |
 | type | string | Type of the frame. Which can be either `"calibration"` or `"scan"` |
+| percentage | number | Percentage of completion |
 | timeElapsed | number | Time Elapsed in ms |
 | confidence | number | Confidence score between the range `0-1` (poor - good) |
 | fps | number | Current FPS of the frame |
@@ -181,10 +183,10 @@ During Scan you recieve data from every processed frame through this callback.
 If any error occurs during Scan, this callback will be called with the `Error` object.
 | Error Message | Cause/Reason |
 | --- | --- |
-| Fingerscan Initialization Error. | error at initialization. |
-| Fingerscan Error. | any general error occured during the scan process. |
-| We are not able to access the Camera. Please try again. | camera is inaccessible. |
-| Unable to measure your vitals. Try to keep your finger steady the next time. | finger is not properly placed or, not visible. |
+| Ensure your finger is correctly positioned on the camera and there is enough light if the flashlight isn't on. | Finger not detected or moved too much during the scan. |
+| Flash could not be acquired. | (Non-Severe) This error will not Cancel the Scan.<br>This error will be logged in console, when device flashlight isn't accessible via the SDK. |
+
+[More Errors...](#Errors)
 
 ### `onScanFinish()`
 When the scan is finished successfully, this callback will be called with raw data, which will be needed for the backend API call.
@@ -215,6 +217,15 @@ This function call stops the Scan.
 | `isScanning()` | Returns `true` if the scan process is ongoing |
 | `canStop()` | Returns `true` if Minimum Scan Time is elapsed |
 | `isFingerInView()` | Returns `false` if the finger is not properly detected |
+
+## Errors
+
+Following are some Errors which are common to both Finger/Face Scan SDK
+| Error Message | Cause/Reason |
+| --- | --- |
+| We are not able to access the Camera. Please try again. | SDK is unable to get access to camera, either browser permission is disabled, or device camera is disabled, or hardware camera is not available. |
+| Sorry we're unable to compute the signal. Please try again. | SDK failed to perform some logical operation during the scan. |
+| App functionality disabled in the Background. Keep it in the Foreground for proper operation. | App is moved to background, maybe due to a phone-call or other reasons. |
 
 ## Capture image during scan
 ```js

@@ -8,19 +8,20 @@ const faceScan = (() => {
 
   let isScanning = false;
   let canStop = false;
+  let frameID = 0;
   let start_time;
 
   let video;
   let canvas;
   let ctx;
 
-  let onFrameCallback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => {};
+  let onFrameCallback = ({ type = "", percentage = 0, timeElapsed = 0, isLightMode = false, fps = 0 }) => {};
   let onScanFinishCallback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {};
   let onErrorCallback = (err = new Error("Facescan Error.")) => {};
 
   let wakeLock = undefined;
   let fmesh;
-  let drawType = "faceCircle";
+  let drawType = "circle";
   let drawColor = "#fff";
   let drawingRegion = undefined;
   let minX = 0,
@@ -46,12 +47,16 @@ const faceScan = (() => {
         video.onloadedmetadata = () => {
           resolve();
         };
-      } catch (error) {
-        reject(new Error("We are not able to access the Camera. Please try again."));
+      } catch (err) {
+        reject(new Error("We are not able to access the Camera. Please try again.", { cause: err }));
       }
     });
 
   const stopScan = (noCallback = false) => {
+    cancelAnimationFrame(frameID);
+    video?.srcObject?.getTracks?.()?.forEach?.((track) => {
+      track?.stop?.();
+    });
     isScanning = false;
     window.onblur = undefined;
     wakeLock
@@ -61,9 +66,6 @@ const faceScan = (() => {
         console.log("WakeLock Error.");
         console.error(err);
       });
-    video?.srcObject?.getTracks?.()?.forEach?.((track) => {
-      track?.stop?.();
-    });
     if (!noCallback && canStop)
       onScanFinishCallback({
         raw_intensity,
@@ -89,7 +91,7 @@ const faceScan = (() => {
         fmesh.send({ image: video });
         fmesh.onResults((results) => {
           if (results?.multiFaceLandmarks?.[0]?.length > 0) {
-            if (drawType !== "faceCircle") {
+            if (drawType !== "circle") {
               const box = { minX: canvas.width, minY: canvas.height, maxX: 0, maxY: 0 };
               results.multiFaceLandmarks[0].forEach((point) => {
                 const x = point.x * canvas.width;
@@ -101,7 +103,7 @@ const faceScan = (() => {
               });
               drawingRegion = new Path2D();
               if (drawType === "corners") {
-                const size = Math.round(((box.maxX - box.minX + (box.maxY - box.minY)) / 2) * 0.1);
+                const size = Math.round(Math.sqrt(Math.pow(box.maxX - box.minX, 2) + Math.pow(box.maxY - box.minY, 2)) * 0.1);
                 drawingRegion.moveTo(box.minX, box.minY + size);
                 drawingRegion.lineTo(box.minX, box.minY);
                 drawingRegion.lineTo(box.minX + size, box.minY);
@@ -128,40 +130,8 @@ const faceScan = (() => {
             maxX = 0;
             maxY = 0;
             const points = [
-              114,
-              121,
-              120,
-              119,
-              118,
-              117,
-              111,
-              116,
-              123,
-              147,
-              187,
-              207,
-              206,
-              203,
-              142,
-              126,
-              217, // Left  Cheek
-              343,
-              350,
-              349,
-              348,
-              347,
-              346,
-              340,
-              345,
-              352,
-              376,
-              411,
-              427,
-              426,
-              423,
-              371,
-              355,
-              437, // Right Cheek
+              114, 121, 120, 119, 118, 117, 111, 116, 123, 147, 187, 207, 206, 203, 142, 126, 217, 343, 350, 349, 348, 347, 346, 340, 345, 352, 376,
+              411, 427, 426, 423, 371, 355, 437,
             ].map((idx) => {
               const x = results.multiFaceLandmarks[0][idx].x * canvas.width;
               const y = results.multiFaceLandmarks[0][idx].y * canvas.height;
@@ -234,15 +204,16 @@ const faceScan = (() => {
           getRegion().then(() => calibrationFPSArray.push(1000 / (performance.now() - loop_start_time)));
           onFrameCallback({
             type: "calibration",
+            percentage: Math.round((timeElapsed / calibrationTime) * 100),
             timeElapsed,
             isLightMode: false,
             fps: calibrationFPSArray[calibrationFPSArray.length - 1],
           });
-          requestAnimationFrame(scan);
+          frameID = requestAnimationFrame(scan);
         } else if (timeElapsed <= calibrationTime + totalScanTime) {
           if (noDetectionCount > 100) {
             stopScan(true);
-            onErrorCallback(new Error("Unable to measure your vitals.\nTry to look at the camera the next time."));
+            onErrorCallback(new Error("Ensure your face is visible on the screen and there is enough ambient light."));
           } else {
             if (timeElapsed > calibrationTime + minimumScanTime) canStop = true;
             else canStop = false;
@@ -260,11 +231,12 @@ const faceScan = (() => {
             fps_array.push(1000 / (performance.now() - loop_start_time));
             onFrameCallback({
               type: "scan",
+              percentage: Math.round(((timeElapsed - calibrationTime) / totalScanTime) * 100),
               timeElapsed,
               isLightMode: typeof region === "undefined",
               fps: fps_array[fps_array.length - 1],
             });
-            requestAnimationFrame(scan);
+            frameID = requestAnimationFrame(scan);
           }
         } else {
           canStop = true;
@@ -273,11 +245,11 @@ const faceScan = (() => {
       }
     } catch (err) {
       stopScan(true);
-      onErrorCallback(err ?? new Error("Facescan Error."));
+      onErrorCallback(new Error("Sorry we're unable to compute the signal. Please try again.", { cause: err }));
     }
   };
 
-  const startScan = (
+  const startScan = async (
     minimumScanTime_inMS = 60000,
     totalScanTime_inMS = 120000,
     modelPath = "https://content.careplix.com/careplix-web-algo-models/V2",
@@ -289,7 +261,7 @@ const faceScan = (() => {
     canStop = false;
     isFaceInView = false;
     noDetectionCount = 0;
-    drawType = "faceCircle";
+    drawType = "circle";
     drawColor = "#fff";
     drawingRegion = undefined;
     minX = 0;
@@ -301,50 +273,52 @@ const faceScan = (() => {
     ppg_time = [];
     fps_array = [];
 
-    return new Promise(async (resolve, reject) => {
+    try {
+      if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration can be between 3000-20000ms range.");
+      if (minimumScanTime_inMS < 30000) throw new Error("Minimum 30 seconds of Scan is Required.");
+      if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
+      if (lightModeRedetectionInterval_inMS < 3000 || lightModeRedetectionInterval_inMS > 5000)
+        throw new Error("Light mode Re-Detection Interval can be between 3000-5000ms range.");
+      if (typeof drawProps === "object") {
+        switch (drawProps.drawType) {
+          case "bounding-box":
+            drawType = "box";
+            break;
+          case "corner-box":
+            drawType = "corners";
+            break;
+          default:
+            console.error("Provided Draw-Type is Invalid!\nSwitching to default...");
+          case undefined:
+          case "face-circle":
+            drawType = "circle";
+        }
+        if (drawProps.color) {
+          const s = new Option().style;
+          s.color = drawProps.color;
+          if (s.color.length === 0) {
+            console.error("Provided Draw-Color is Invalid!\nSwitching to default...");
+            drawColor = "#fff";
+          } else drawColor = s.color;
+        }
+      } else throw new Error("Invalid Draw-Properties Provided.");
+      calibrationTime = calibrationTime_inMS;
+      minimumScanTime = minimumScanTime_inMS;
+      totalScanTime = totalScanTime_inMS;
+      lightModeInterval_inS = Math.round(lightModeRedetectionInterval_inMS / 1000);
+
+      navigator.wakeLock
+        ?.request("screen")
+        .then((wakeLockSentinel) => {
+          wakeLock = wakeLockSentinel;
+          console.log("WakeLock Active.");
+        })
+        .catch((err) => {
+          console.log("WakeLock Error.");
+          console.error(err);
+        });
+
       try {
-        if (calibrationTime_inMS < 3000 || calibrationTime_inMS > 20000) throw new Error("Calibration duration should be in 3000-20000ms range.");
-        if (minimumScanTime_inMS < 60000) throw new Error("Minimum 60 seconds of Scan is Mandatory.");
-        if (minimumScanTime_inMS > totalScanTime_inMS) throw new Error("Total Scan-Time cannot be smaller than Minimum Scan-Time.");
-        if (lightModeRedetectionInterval_inMS < 3000 || lightModeRedetectionInterval_inMS > 5000)
-          throw new Error("Light mode Re-Detection Interval should be in 3000-5000ms range.");
-        if (typeof drawProps === "object") {
-          switch (drawProps.drawType) {
-            case "bounding-box":
-              drawType = "box";
-              break;
-            case "corner-box":
-              drawType = "corners";
-              break;
-            default:
-              console.log("Provided Draw-Type is Invalid!\nSwitching to default...");
-            case undefined:
-            case "face-circle":
-              drawType = "faceCircle";
-          }
-          if (drawProps.color) {
-            const s = new Option().style;
-            s.color = drawProps.color;
-            if (s.color === "") console.log("Provided Draw-Color is Invalid!\nSwitching to default...");
-            else drawColor = s.color;
-          }
-        } else throw new Error("Invalid Draw-Properties Provided.");
-        calibrationTime = calibrationTime_inMS;
-        minimumScanTime = minimumScanTime_inMS;
-        totalScanTime = totalScanTime_inMS;
-        lightModeInterval_inS = Math.round(lightModeRedetectionInterval_inMS / 1000);
-
-        navigator.wakeLock
-          ?.request("screen")
-          .then((wakeLockSentinel) => {
-            wakeLock = wakeLockSentinel;
-            console.log("WakeLock Active.");
-          })
-          .catch((err) => {
-            console.log("WakeLock Error.");
-            console.error(err);
-          });
-
         fmesh = new FaceMesh({ locateFile: (file) => `${modelPath}/${file}` });
         fmesh.setOptions({
           enableFaceGeometry: false,
@@ -353,45 +327,43 @@ const faceScan = (() => {
           maxNumFaces: 1,
         });
         await fmesh.initialize();
-
-        // Set up front-facing camera
-        video = document.getElementById("videoInput");
-        if (video) {
-          await setupCamera();
-          video.play();
-        } else throw new Error("Cannot get the video element.");
-
-        // Create canvas and drawing context
-        canvas = document.getElementById("canvasOutput");
-        if (canvas) {
-          minX = video.videoWidth;
-          minY = video.videoHeight;
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx = canvas.getContext("2d");
-        } else throw new Error("Cannot get the canvas element.");
-
-        // start prediction loop
-        start_time = performance.now();
-        requestAnimationFrame(scan);
-        isScanning = true;
-        window.onblur = () => {
-          stopScan(true);
-          onErrorCallback(new Error("App in Background."));
-        };
-        resolve();
       } catch (err) {
-        stopScan(true);
-        onErrorCallback(err ?? new Error("Facescan Initialization Error."));
-        reject("Facescan Initialization Error.");
+        throw new Error("Please check your internet connection & try again.", { cause: err });
       }
-    });
+
+      video = document.getElementById("videoInput");
+      if (video) {
+        await setupCamera();
+        await video.play?.();
+      } else throw new Error("Cannot get the video element.");
+
+      canvas = document.getElementById("canvasOutput");
+      if (canvas) {
+        minX = video.videoWidth;
+        minY = video.videoHeight;
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx = canvas.getContext("2d");
+      } else throw new Error("Cannot get the canvas element.");
+
+      start_time = performance.now();
+      frameID = requestAnimationFrame(scan);
+      isScanning = true;
+      window.onblur = () => {
+        stopScan(true);
+        onErrorCallback(new Error("App functionality disabled in the Background. Keep it in the Foreground for proper operation."));
+      };
+    } catch (err) {
+      stopScan(true);
+      onErrorCallback(err ?? new Error("Facescan Initialization Error."));
+      throw new Error("Facescan Initialization Error.", { cause: err });
+    }
   };
 
   return {
     startScan,
     stopScan,
-    onFrame: (callback = ({ type = "", timeElapsed = 0, isLightMode = false, fps = 0 }) => {}) => {
+    onFrame: (callback = ({ type = "", percentage = 0, timeElapsed = 0, isLightMode = false, fps = 0 }) => {}) => {
       if (typeof callback === "function") onFrameCallback = callback;
     },
     onScanFinish: (callback = ({ raw_intensity = [], ppg_time = [], average_fps = 0 }) => {}) => {

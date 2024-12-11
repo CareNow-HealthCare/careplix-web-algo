@@ -8,8 +8,9 @@ declare function stopScan(noCallback?: boolean): void;
 declare namespace fingerScan {
     export { startScan };
     export { stopScan };
-    export function onFrame(callback: ({ type, timeElapsed, confidence, fps }: {
+    export function onFrame(callback: ({ type, percentage, timeElapsed, confidence, fps }: {
         type: "calibration" | "scan";
+        percentage: number;
         timeElapsed: number;
         confidence: number;
         fps: number;
