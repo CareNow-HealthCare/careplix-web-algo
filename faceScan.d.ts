@@ -4,6 +4,7 @@ declare function startScan({
   scanTime_inSec,
   liteModeRedetectionInterval_inSec,
   models_path,
+  deviceModel,
   draw_type,
   draw_color,
   strict_mode,
@@ -14,6 +15,7 @@ declare function startScan({
   scanTime_inSec?: number;
   liteModeRedetectionInterval_inSec?: number;
   models_path?: string;
+  deviceModel?: string;
   draw_type?: "face-circle" | "bounding-box" | "corner-box";
   draw_color?: string;
   strict_mode?: boolean;

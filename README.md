@@ -119,6 +119,7 @@ This function call starts the Scan.
 | scanTime_inSec | number | 60 | Duration of Scan phase in sec (30-120) |
 | models_path | string | CarePlix CDN | Path of the models directory, if model files are self-hosted |
 | liteModeRedetectionInterval_inSec | number | 3 | Face Re-Detection interval for [Lite-Mode](#LiteMode) |
+| deviceModel | string | window.navigator.userAgent | The Model name/number of the Device. e.g. "SM-S918B" denotes a "Samsung S23 Ultra" device. If this parameter isn't provided then Model is assumed from [userAgentData](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgentData) or [userAgent](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/userAgent) |
 | draw_type | string | "face-circle" | Drawing type on face during the scan<br>Possible options are "face-circle" or "bounding-box" or "corner-box" |
 | draw_color | string | "#fff" | Draw color of the above draw_type |
 | strict_mode | boolean | false | Strict Mode Config ([Read More](#StrictMode)) |
