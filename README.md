@@ -24,10 +24,10 @@ Or, you can also use a CDN like [jsdelivr](https://www.jsdelivr.com/package/npm/
 ```html
 <head>
   <!-- For faceScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.2/dist/faceScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.3/dist/faceScan.bundle.js"></script>
   
   <!-- For fingerScan -->
-  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.2/dist/fingerScan.bundle.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/careplix-web-algo@2.1.3/dist/fingerScan.bundle.js"></script>
 </head>
 ```
 
